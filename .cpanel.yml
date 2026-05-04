@@ -6,3 +6,4 @@ deployment:
     - /bin/cp -R includes $DEPLOYPATH || true
     - /bin/cp -R pages $DEPLOYPATH || true
     - /bin/cp *.php $DEPLOYPATH || true
+    - /bin/cp *.sql $DEPLOYPATH || true
