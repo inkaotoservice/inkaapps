@@ -1,16 +1,27 @@
 <?php
 require_once 'includes/config.php';
 
+function addColumnIfNotExists($pdo, $table, $column, $definition) {
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM `$table` LIKE '$column'");
+        if ($stmt->rowCount() == 0) {
+            $pdo->exec("ALTER TABLE `$table` ADD COLUMN `$column` $definition");
+            echo "Added column $column to $table.<br>";
+        } else {
+            echo "Column $column already exists in $table.<br>";
+        }
+    } catch (Exception $e) {
+        echo "Error adding $column to $table: " . $e->getMessage() . "<br>";
+    }
+}
+
 try {
-    // 1. Add columns to bookings
-    $pdo->exec("ALTER TABLE bookings ADD COLUMN is_dp_paid TINYINT(1) DEFAULT 0");
-    $pdo->exec("ALTER TABLE bookings ADD COLUMN dp_amount INT DEFAULT 0");
+    addColumnIfNotExists($pdo, 'bookings', 'is_dp_paid', "TINYINT(1) DEFAULT 0");
+    addColumnIfNotExists($pdo, 'bookings', 'dp_amount', "INT DEFAULT 0");
+    addColumnIfNotExists($pdo, 'transactions', 'dp_amount', "INT DEFAULT 0");
     
-    // 2. Add column to transactions
-    $pdo->exec("ALTER TABLE transactions ADD COLUMN dp_amount INT DEFAULT 0");
-    
-    echo "Database migration successful.";
+    echo "Database migration v2 updated and completed.";
 } catch (Exception $e) {
-    echo "Migration failed or already applied: " . $e->getMessage();
+    echo "Migration failed: " . $e->getMessage();
 }
 ?>
