@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/inkaotos/app.inkaotoservice.id/
+    - /bin/cp -R assets $DEPLOYPATH || true
+    - /bin/cp -R includes $DEPLOYPATH || true
+    - /bin/cp -R pages $DEPLOYPATH || true
+    - /bin/cp *.php $DEPLOYPATH || true
