@@ -118,7 +118,8 @@ $invoice_no = "INV-" . strtoupper(substr(str_replace('-', '', $tx['id']), 0, 8))
         /* A4 Container */
         .a4-container {
             background: white;
-            width: 210mm;
+            width: 100%;
+            max-width: 210mm;
             min-height: 297mm;
             padding: 20mm;
             box-shadow: 0 20px 50px -12px rgba(0,0,0,0.1);
@@ -339,6 +340,27 @@ $invoice_no = "INV-" . strtoupper(substr(str_replace('-', '', $tx['id']), 0, 8))
             font-weight: 800;
         }
 
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            body { padding: 15px 10px; }
+            .toolbar { flex-wrap: wrap; justify-content: center; width: calc(100% - 20px); border-radius: 20px; top: 15px; }
+            .btn { flex: 1; min-width: 40%; justify-content: center; text-align: center; }
+            .a4-container { padding: 20px; margin-top: 120px; min-height: auto; border-radius: 12px; }
+            .header-top { flex-direction: column; gap: 20px; margin-bottom: 20px; }
+            .company-name { font-size: 20px; }
+            .company-logo-box { padding: 8px 15px; font-size: 18px; }
+            .invoice-title-area { margin-bottom: 20px; }
+            .invoice-title { font-size: 24px; }
+            .invoice-title-block { width: 40px; height: 24px; }
+            .invoice-meta-container { justify-content: flex-start; margin-top: 0; margin-bottom: 20px; }
+            .parties-section { flex-direction: column; gap: 20px; }
+            .summary-section { flex-direction: column; gap: 20px; }
+            .terms-info { padding-right: 0; }
+            .totals-box { width: 100%; }
+            .table-responsive { width: 100%; overflow-x: auto; margin-bottom: 30px; -webkit-overflow-scrolling: touch; }
+            .invoice-table { min-width: 500px; margin-bottom: 0; }
+        }
+
         @media print {
             body { background: white; padding: 0; }
             .toolbar { display: none; }
@@ -476,34 +498,36 @@ $invoice_no = "INV-" . strtoupper(substr(str_replace('-', '', $tx['id']), 0, 8))
 
 
 
-        <table class="invoice-table">
-            <thead>
-                <tr>
-                    <th width="5%">NO.</th>
-                    <th width="45%">DESCRIPTION</th>
-                    <th width="10%" class="text-center">QTY</th>
-                    <th width="20%" class="text-right">PRICE</th>
-                    <th width="20%" class="text-right">TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-                $subtotal = 0;
-                $no = 1;
-                foreach ($items as $item): 
-                    $total = $item['qty'] * $item['price_at_sale'];
-                    $subtotal += $total;
-                ?>
+        <div class="table-responsive">
+            <table class="invoice-table">
+                <thead>
                     <tr>
-                        <td><?php echo $no++; ?></td>
-                        <td><?php echo htmlspecialchars($item['item_name']); ?></td>
-                        <td class="text-center"><?php echo $item['qty']; ?></td>
-                        <td class="text-right">Rp <?php echo number_format($item['price_at_sale'], 0, ',', '.'); ?></td>
-                        <td class="text-right">Rp <?php echo number_format($total, 0, ',', '.'); ?></td>
+                        <th width="5%">NO.</th>
+                        <th width="45%">DESCRIPTION</th>
+                        <th width="10%" class="text-center">QTY</th>
+                        <th width="20%" class="text-right">PRICE</th>
+                        <th width="20%" class="text-right">TOTAL</th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    <?php 
+                    $subtotal = 0;
+                    $no = 1;
+                    foreach ($items as $item): 
+                        $total = $item['qty'] * $item['price_at_sale'];
+                        $subtotal += $total;
+                    ?>
+                        <tr>
+                            <td><?php echo $no++; ?></td>
+                            <td><?php echo htmlspecialchars($item['item_name']); ?></td>
+                            <td class="text-center"><?php echo $item['qty']; ?></td>
+                            <td class="text-right">Rp <?php echo number_format($item['price_at_sale'], 0, ',', '.'); ?></td>
+                            <td class="text-right">Rp <?php echo number_format($total, 0, ',', '.'); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
 
         <div class="summary-section">
             <div class="terms-info">

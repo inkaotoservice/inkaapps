@@ -50,9 +50,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($branch_id) {
             $logo_url = $_POST['existing_logo'] ?? '';
-            // ... logo upload logic ...
+            
             if (isset($_FILES['branch_logo']) && $_FILES['branch_logo']['error'] === UPLOAD_ERR_OK) {
-                // (Existing logic remains)
+                $upload_dir = '../assets/uploads/logos/';
+                
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0777, true);
+                }
+                
+                $file_tmp = $_FILES['branch_logo']['tmp_name'];
+                $file_name = $_FILES['branch_logo']['name'];
+                $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+                
+                $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                
+                if (in_array($file_ext, $allowed_extensions)) {
+                    $new_file_name = 'branch_' . $branch_id . '_' . time() . '.' . $file_ext;
+                    $upload_path = $upload_dir . $new_file_name;
+                    
+                    if (move_uploaded_file($file_tmp, $upload_path)) {
+                        $logo_url = $new_file_name;
+                        // Hapus logo lama jika ada dan bukan URL eksternal
+                        if (!empty($_POST['existing_logo']) && file_exists($upload_dir . $_POST['existing_logo'])) {
+                            unlink($upload_dir . $_POST['existing_logo']);
+                        }
+                    } else {
+                        $error = "Gagal mengunggah logo cabang.";
+                    }
+                } else {
+                    $error = "Format file tidak didukung. Harap unggah gambar (JPG, PNG, GIF, WEBP).";
+                }
             }
             
             if (!$error) {
