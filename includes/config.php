@@ -1,11 +1,20 @@
 <?php
 // Konfigurasi Database Laragon
-define('BASE_URL', 'http://localhost/bengkel-pro-php/'); // Sesuaikan dengan folder Anda di Laragon
-
-$host = 'localhost';
-$db   = 'bengkel_pro';
-$user = 'root';
-$pass = '';
+if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1') {
+    // Konfigurasi Database Lokal
+    define('BASE_URL', 'http://localhost/bengkel-pro-php/'); 
+    $host = 'localhost';
+    $db   = 'bengkel_pro';
+    $user = 'root';
+    $pass = '';
+} else {
+    // Konfigurasi Database cPanel (Production)
+    define('BASE_URL', 'https://app.inkaotoservice.id/');
+    $host = 'localhost';
+    $db   = 'inkaotos_bengkel';
+    $user = 'inkaotos_admin';
+    $pass = 'jc(^9ZHkM4]65vws';
+}
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
