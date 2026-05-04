@@ -184,7 +184,7 @@ $branches = $stmt_br->fetchAll();
                             <select name="branch_id" required class="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-sm text-slate-800">
                                 <option value="">-- Pilih Cabang Tujuan --</option>
                                 <?php foreach ($branches as $br): ?>
-                                    <option value="<?php echo $br['id']; ?>"><?php echo htmlspecialchars($br['name']); ?></option>
+                                    <option value="<?php echo $br['id']; ?>"><?php echo htmlspecialchars($br['name']); ?> (<?php echo htmlspecialchars($br['address'] ?? ''); ?>)</option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
