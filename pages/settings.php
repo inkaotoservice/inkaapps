@@ -35,6 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('receipt_logo_url', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$receipt_logo_url, $receipt_logo_url]);
             $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('receipt_notes', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$receipt_notes, $receipt_notes]);
+            
+            if (isset($_POST['payment_bank_name'])) {
+                $bank_name = trim($_POST['payment_bank_name']);
+                $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('payment_bank_name', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$bank_name, $bank_name]);
+            }
+            if (isset($_POST['payment_account_number'])) {
+                $acc_number = trim($_POST['payment_account_number']);
+                $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('payment_account_number', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$acc_number, $acc_number]);
+            }
+            if (isset($_POST['payment_account_name'])) {
+                $acc_name = trim($_POST['payment_account_name']);
+                $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('payment_account_name', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$acc_name, $acc_name]);
+            }
             $pdo->commit();
             $success = "Pengaturan global berhasil diperbarui.";
         } catch (Exception $e) {
@@ -294,6 +307,27 @@ include '../includes/sidebar.php';
                                             value="<?php echo number_format((int)($settings['booking_dp'] ?? 50000), 0, ',', '.'); ?>"
                                             onkeyup="this.value = formatRupiah(this.value)"
                                             class="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-semibold text-slate-900">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Nama Bank</label>
+                                        <input type="text" name="payment_bank_name" placeholder="Bank BCA"
+                                            value="<?php echo htmlspecialchars($settings['payment_bank_name'] ?? 'Bank BCA'); ?>"
+                                            class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-semibold text-slate-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Nomor Rekening</label>
+                                        <input type="text" name="payment_account_number" placeholder="123 456 7890"
+                                            value="<?php echo htmlspecialchars($settings['payment_account_number'] ?? '1234567890'); ?>"
+                                            class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-semibold text-slate-900">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Atas Nama (A/N)</label>
+                                        <input type="text" name="payment_account_name" placeholder="PT Inka Otoservice"
+                                            value="<?php echo htmlspecialchars($settings['payment_account_name'] ?? 'PT Inka Otoservice'); ?>"
+                                            class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-semibold text-slate-900">
                                     </div>
                                 </div>
                                 <div class="pt-4 border-t border-slate-100 flex justify-start">

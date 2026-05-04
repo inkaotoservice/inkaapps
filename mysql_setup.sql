@@ -220,7 +220,10 @@ INSERT IGNORE INTO app_settings (`key`, `value`) VALUES
   ('app_name',          'Inka Otoservice'),
   ('montir_ai_quota',   '10'),
   ('montir_ai_days',    '30'),
-  ('booking_dp',        '50000');
+  ('booking_dp',        '50000'),
+  ('payment_bank_name', 'Bank BCA'),
+  ('payment_account_number', '1234567890'),
+  ('payment_account_name', 'PT Inka Otoservice');
 
 -- ================================================================
 -- SAMPLE CATALOG
