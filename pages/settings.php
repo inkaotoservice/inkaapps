@@ -430,7 +430,10 @@ include '../includes/sidebar.php';
                             </div>
                             <div>
                                 <h2 class="text-sm font-black uppercase tracking-widest text-slate-900">Pengaturan Cabang</h2>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><?php echo htmlspecialchars($br['name']); ?> — <span class="text-blue-500"><?php echo htmlspecialchars($br['address'] ?? 'Alamat belum diatur'); ?></span></p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"><?php 
+                                    $area = !empty($br['address']) ? explode(' ', trim($br['address']))[0] : 'Umum';
+                                    echo htmlspecialchars($br['name'] . ' - ' . $area); 
+                                ?></p>
                             </div>
                         </div>
                     </div>
