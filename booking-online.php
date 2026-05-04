@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     
     $stmt = $pdo->prepare("
         INSERT INTO bookings (id, customer_name, customer_phone, car_model, license_plate, branch_id, service_date, service_time, notes, booking_code, booking_type, status, is_online)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'online', 'awaiting_dp', 1)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'online', 'pending', 1)
     ");
     $stmt->execute([$id, $name, $phone, $car_model, $license_plate, $branch_id, $service_date, $service_time, $notes, $booking_code]);
     
