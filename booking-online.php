@@ -309,8 +309,8 @@ $branches = $stmt_br->fetchAll();
                 <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-600"></i>
                 </div>
-                <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Hampir Selesai!</h2>
-                <p class="text-slate-500 font-medium mb-8 text-sm px-4">Pendaftaran sudah masuk ke sistem. **Jangan lupa lampirkan foto bukti transfer** Anda di chat WhatsApp yang baru saja terbuka.</p>
+                <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Pendaftaran Berhasil!</h2>
+                <p class="text-slate-500 font-medium mb-8 text-sm px-4">Pendaftaran Anda telah tercatat di sistem kami. **Satu langkah lagi:** Silakan kirimkan foto bukti transfer Anda ke WhatsApp Admin untuk konfirmasi akhir.</p>
                 
                 <div class="bg-slate-50 rounded-2xl p-5 sm:p-6 border border-slate-200 mb-6 sm:mb-8 inline-block text-left w-full max-w-sm">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kode Booking</p>
@@ -327,15 +327,16 @@ $branches = $stmt_br->fetchAll();
                 
                 <input type="hidden" id="waLink" value="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>">
 
-                <div class="mb-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-center gap-3">
-                    <div class="animate-bounce">
-                        <i data-lucide="message-circle" class="w-5 h-5 text-emerald-600"></i>
-                    </div>
-                    <p class="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-widest">Membuka WhatsApp Admin...</p>
+                <div class="mb-8 space-y-4">
+                    <a href="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>" class="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+                        <span>Kirim Bukti via WhatsApp Sekarang</span>
+                    </a>
+                    <p class="text-[10px] text-slate-400 font-semibold italic">Aplikasi WhatsApp akan terbuka secara otomatis dalam beberapa saat. Jika tidak, silakan klik tombol di atas.</p>
                 </div>
 
-                <a href="login.php" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
-                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Kembali ke Beranda
+                <a href="booking-online.php" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Buat Booking Baru
                 </a>
             </div>
 
