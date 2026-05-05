@@ -390,6 +390,8 @@ $branches = $stmt_br->fetchAll();
                 }
             });
             
+            // Logika pembatasan kuota jam dihilangkan agar pelanggan bebas memilih jam kapanpun
+            /*
             if (branch_id && date) {
                 fetch(`booking-online.php?action=get_booked_times&date=${date}&branch_id=${branch_id}`)
                     .then(res => res.json())
@@ -417,6 +419,7 @@ $branches = $stmt_br->fetchAll();
                     })
                     .catch(err => console.error('Error fetching timeslots:', err));
             }
+            */
         }
 
         if (branchSelect && dateInput) {
