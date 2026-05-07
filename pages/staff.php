@@ -97,14 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 3. RESET PASSWORD KARYAWAN
     elseif ($action === 'reset_password') {
         $id       = $_POST['id'];
-        $new_pass = password_hash('inka2026', PASSWORD_BCRYPT);
+        $new_password_raw = $_POST['new_password'];
+        $new_pass = password_hash($new_password_raw, PASSWORD_BCRYPT);
         try {
             $stmt = $pdo->prepare("UPDATE users SET password=? WHERE id=?");
             $stmt->execute([$new_pass, $id]);
-            set_flash_msg("Password berhasil direset menjadi: inka2026");
+            set_flash_msg("Password untuk pekerja berhasil diubah.");
             header("Location: $redirect_url"); exit();
         } catch (Exception $e) {
-            set_flash_msg("Gagal mereset password: " . $e->getMessage(), "error");
+            set_flash_msg("Gagal merubah password: " . $e->getMessage(), "error");
             header("Location: $redirect_url"); exit();
         }
     }
@@ -279,13 +280,9 @@ function format_role($role) {
                                 <?php if ($staff['email'] !== 'owner@inka.com'): // Proteksi akun super admin ?>
                                 <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <!-- Tombol Reset Password -->
-                                    <form method="POST" action="" onsubmit="return confirm('Reset password untuk <?php echo $staff['full_name']; ?> menjadi: inka2026?');" class="inline">
-                                        <input type="hidden" name="action" value="reset_password">
-                                        <input type="hidden" name="id" value="<?php echo $staff['id']; ?>">
-                                        <button type="submit" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors" title="Reset Password">
-                                            <i data-lucide="key" class="w-4 h-4"></i>
-                                        </button>
-                                    </form>
+                                    <button onclick="openResetModal('<?php echo $staff['id']; ?>', '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors" title="Ubah Password">
+                                        <i data-lucide="key" class="w-4 h-4"></i>
+                                    </button>
 
                                     <!-- Tombol Edit -->
                                     <button onclick="openEditModal(<?php echo htmlspecialchars(json_encode($staff)); ?>)" class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center hover:bg-amber-100 transition-colors" title="Edit Data">
@@ -427,6 +424,55 @@ function format_role($role) {
 </div>
 
 <!-- ==========================================
+     MODAL RESET PASSWORD
+=========================================== -->
+<div id="modalResetPassword" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeModal('modalResetPassword')"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm relative z-10 overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="modalResetPasswordContent">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-white text-slate-600 shadow-sm border border-slate-100 flex items-center justify-center">
+                        <i data-lucide="key" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-black text-slate-900 text-lg">Ubah Password</h3>
+                </div>
+                <button type="button" onclick="closeModal('modalResetPassword')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/50 text-slate-500 hover:bg-slate-200"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form action="" method="POST" class="p-6">
+                <input type="hidden" name="action" value="reset_password">
+                <input type="hidden" name="id" id="resetPasswordId">
+                
+                <div class="mb-5 bg-slate-50 border border-slate-100 p-3 rounded-xl flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-black text-sm uppercase" id="resetPasswordAvatar"></div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Akun Karyawan</p>
+                        <p class="text-sm font-black text-slate-900 truncate" id="resetPasswordName"></p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Password Baru</label>
+                        <div class="relative">
+                            <input type="password" name="new_password" id="newPasswordInput" required class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-slate-500 outline-none text-sm font-semibold pr-10" placeholder="Ketik password baru...">
+                            <button type="button" onclick="togglePasswordVisibility('newPasswordInput', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors">
+                                <i data-lucide="eye" class="w-5 h-5 icon-eye"></i>
+                                <i data-lucide="eye-off" class="w-5 h-5 icon-eye-off hidden"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalResetPassword')" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors uppercase tracking-widest">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 shadow-lg shadow-slate-900/20 uppercase tracking-widest">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
      MODAL EDIT KARYAWAN
 =========================================== -->
 <div id="modalEdit" class="fixed inset-0 z-[100] hidden">
@@ -521,6 +567,14 @@ $extra_js = <<<JS
             if (eye) eye.classList.remove('hidden');
             if (eyeOff) eyeOff.classList.add('hidden');
         }
+    }
+
+    function openResetModal(id, name) {
+        document.getElementById('resetPasswordId').value = id;
+        document.getElementById('resetPasswordName').innerText = name;
+        document.getElementById('resetPasswordAvatar').innerText = name.substring(0, 2).toUpperCase();
+        document.getElementById('newPasswordInput').value = '';
+        openModal('modalResetPassword');
     }
 
     function openEditModal(staff) {
