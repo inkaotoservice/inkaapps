@@ -88,9 +88,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $msg_type = "error";
             }
         }
-    } elseif ($_POST['action'] === 'delete_item') {
-        $exp_id = $_POST['expense_id'];
-        $item_idx = (int)$_POST['item_index'];
+    } elseif ($_POST['action'] === 'edit_item') {
+        $exp_id      = $_POST['expense_id'];
+        $item_idx    = (int)$_POST['item_index'];
+        $new_name    = trim($_POST['item_name']);
+        $new_supplier = trim($_POST['supplier_name']);
+        $new_qty     = (int)$_POST['qty'];
+        $new_cost    = (int)str_replace('.', '', $_POST['cost']);
         
         try {
             $stmt = $pdo->prepare("SELECT description FROM expenses WHERE id = ?");
@@ -102,28 +106,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $items = json_decode($json_str, true);
                 
                 if (isset($items[$item_idx])) {
-                    array_splice($items, $item_idx, 1);
+                    // Update item data
+                    $items[$item_idx]['name'] = $new_name;
+                    $items[$item_idx]['supplier_name'] = $new_supplier;
+                    $items[$item_idx]['qty'] = $new_qty;
+                    $items[$item_idx]['cost'] = $new_cost;
                     
-                    if (empty($items)) {
-                        $pdo->prepare("DELETE FROM expenses WHERE id = ?")->execute([$exp_id]);
-                    } else {
-                        $new_total = 0;
-                        foreach ($items as $it) {
-                            $new_total += ((int)$it['qty'] * (int)$it['cost']);
-                        }
-                        $new_desc = "STRUCT_JSON:" . json_encode($items);
-                        $pdo->prepare("UPDATE expenses SET description = ?, amount = ? WHERE id = ?")->execute([$new_desc, $new_total, $exp_id]);
+                    // Recalculate total expense amount
+                    $new_total = 0;
+                    foreach ($items as $it) {
+                        $new_total += ((int)$it['qty'] * (int)$it['cost']);
                     }
-                    header("Location: supplier.php?deleted=1");
+                    
+                    $new_desc = "STRUCT_JSON:" . json_encode($items);
+                    $pdo->prepare("UPDATE expenses SET description = ?, amount = ? WHERE id = ?")->execute([$new_desc, $new_total, $exp_id]);
+                    
+                    header("Location: supplier.php?success_edit=1");
                     exit();
                 }
-            } else {
-                $pdo->prepare("DELETE FROM expenses WHERE id = ?")->execute([$exp_id]);
-                header("Location: supplier.php?deleted=1");
-                exit();
             }
         } catch (Exception $e) {
-            $msg = "Gagal menghapus: " . $e->getMessage();
+            $msg = "Gagal mengedit: " . $e->getMessage();
             $msg_type = "error";
         }
     }
@@ -253,6 +256,12 @@ foreach ($flattened_data as $item) {
         </div>
         <?php endif; ?>
 
+        <?php if (isset($_GET['success_edit'])): ?>
+        <div class="mb-6 p-4 rounded-2xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-3 font-semibold text-sm">
+            <i data-lucide="check-circle" class="w-5 h-5"></i> Data berhasil diperbarui!
+        </div>
+        <?php endif; ?>
+
         <?php if ($msg): ?>
         <div class="mb-6 p-4 rounded-2xl <?php echo $msg_type === 'error' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'; ?> border flex items-center gap-3 font-semibold text-sm">
             <i data-lucide="alert-circle" class="w-5 h-5"></i> <?php echo $msg; ?>
@@ -346,14 +355,19 @@ foreach ($flattened_data as $item) {
                                 <p class="font-black text-slate-900 text-sm"><?php echo rupiah($item['total_cost']); ?></p>
                             </td>
                             <td class="px-8 py-5 text-center">
-                                <form action="" method="POST" onsubmit="return confirm('Hapus data barang ini dari Nota Pengambilan?');">
-                                    <input type="hidden" name="action" value="delete_item">
-                                    <input type="hidden" name="expense_id" value="<?php echo $item['id']; ?>">
-                                    <input type="hidden" name="item_index" value="<?php echo $item['item_index']; ?>">
-                                    <button type="submit" class="p-2 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick='openEditModal(<?php echo json_encode($item); ?>)' class="p-2 bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-xl transition-all">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
-                                </form>
+                                    <form action="" method="POST" onsubmit="return confirm('Hapus data barang ini dari Nota Pengambilan?');" class="inline">
+                                        <input type="hidden" name="action" value="delete_item">
+                                        <input type="hidden" name="expense_id" value="<?php echo $item['id']; ?>">
+                                        <input type="hidden" name="item_index" value="<?php echo $item['item_index']; ?>">
+                                        <button type="submit" class="p-2 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -458,6 +472,62 @@ foreach ($flattened_data as $item) {
             <button type="button" onclick="submitForm()" class="flex-[2] py-3 px-5 rounded-xl bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest hover:bg-emerald-700 shadow-md shadow-emerald-500/30">Simpan & Kirim WA</button>
         </div>
 
+    </div>
+</div>
+
+<!-- MODAL EDIT PENGAMBILAN -->
+<div id="modalEdit" class="fixed inset-0 z-[100] flex items-center justify-center p-4 hidden">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="document.getElementById('modalEdit').classList.add('hidden')"></div>
+    <div class="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl flex flex-col overflow-hidden z-[101]">
+        
+        <div class="bg-gradient-to-r from-blue-600 to-blue-500 p-6 shrink-0">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-black text-white tracking-tight flex items-center gap-3">
+                        <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm"><i data-lucide="edit-3" class="w-5 h-5 text-white"></i></div>
+                        Edit Data Pengambilan
+                    </h3>
+                    <p class="text-blue-50 text-xs font-medium mt-1 ml-[44px]">Perubahan hanya pada catatan modal, tidak merubah stok.</p>
+                </div>
+                <button onclick="document.getElementById('modalEdit').classList.add('hidden')" class="p-3 text-blue-100 hover:text-white hover:bg-white/20 rounded-2xl transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <form id="editForm" action="" method="POST" class="space-y-4">
+                <input type="hidden" name="action" value="edit_item">
+                <input type="hidden" name="expense_id" id="editExpId">
+                <input type="hidden" name="item_index" id="editItemIdx">
+                
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Supplier</label>
+                    <input type="text" name="supplier_name" id="editSupplier" required class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Barang</label>
+                    <input type="text" name="item_name" id="editItemName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Qty</label>
+                        <input type="number" name="qty" id="editQty" required min="1" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Harga Modal Satuan (Rp)</label>
+                        <input type="text" name="cost" id="editCost" required class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:outline-none focus:border-blue-500" oninput="formatRupiahInput(this)">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="document.getElementById('modalEdit').classList.add('hidden')" class="flex-1 py-3 px-5 rounded-xl bg-slate-100 text-slate-500 font-black text-[11px] uppercase tracking-widest hover:bg-slate-200 transition-all">Batal</button>
+                    <button type="submit" class="flex-[2] py-3 px-5 rounded-xl bg-blue-600 text-white font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -598,6 +668,18 @@ foreach ($flattened_data as $item) {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    }
+
+    function openEditModal(item) {
+        document.getElementById('editExpId').value = item.id;
+        document.getElementById('editItemIdx').value = item.item_index;
+        document.getElementById('editSupplier').value = item.supplier_name;
+        document.getElementById('editItemName').value = item.name;
+        document.getElementById('editQty').value = item.qty;
+        document.getElementById('editCost').value = formatRp(item.cost);
+        
+        document.getElementById('modalEdit').classList.remove('hidden');
+        lucide.createIcons();
     }
 
     // Initial render
