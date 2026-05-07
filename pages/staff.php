@@ -207,6 +207,9 @@ function format_role($role) {
                 </select>
                 <?php endif; ?>
             </form>
+            <button onclick="openModal('modalAddLogin')" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95">
+                <i data-lucide="key" class="w-4 h-4"></i> Tambah Akun Login
+            </button>
             <button onclick="openModal('modalAdd')" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
                 <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Pekerja
             </button>
@@ -350,6 +353,67 @@ function format_role($role) {
                 <div class="mt-8 flex justify-end gap-3">
                     <button type="button" onclick="closeModal('modalAdd')" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors uppercase tracking-widest">Batal</button>
                     <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/30 uppercase tracking-widest">Simpan Akun</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL TAMBAH AKUN LOGIN (SPV, Admin, Owner)
+=========================================== -->
+<div id="modalAddLogin" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeModal('modalAddLogin')"></div>
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg relative z-10 overflow-y-auto max-h-[90vh] custom-scrollbar transform scale-95 opacity-0 transition-all duration-300" id="modalAddLoginContent">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+                <h3 class="font-black text-indigo-900 text-lg">Tambah Akun Login</h3>
+                <button type="button" onclick="closeModal('modalAddLogin')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/50 text-indigo-700 hover:bg-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <form action="" method="POST" class="p-6">
+                <input type="hidden" name="action" value="add">
+                <input type="hidden" name="type" value="login">
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Nama Lengkap</label>
+                        <input type="text" name="full_name" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none text-sm font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Email Login</label>
+                        <input type="email" name="email" required placeholder="email@inka.com" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none text-sm font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Password</label>
+                        <input type="password" name="password" required value="inka2026" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none text-sm font-semibold">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Akses Role</label>
+                            <select name="role" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none text-sm font-bold text-slate-700">
+                                <option value="spv">Supervisor</option>
+                                <option value="admin">Admin Pusat</option>
+                                <option value="admin_depok">Admin Depok</option>
+                                <option value="admin_bsd">Admin BSD</option>
+                                <option value="manager_ops">Manager Ops</option>
+                                <option value="owner">Owner</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Penempatan Cabang</label>
+                            <select name="branch_id" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none text-sm font-bold text-slate-700">
+                                <option value="">- Pusat / Semua Cabang -</option>
+                                <?php foreach($branches as $b): ?>
+                                    <option value="<?php echo $b['id']; ?>"><?php echo htmlspecialchars($b['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('modalAddLogin')" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors uppercase tracking-widest">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 uppercase tracking-widest">Simpan Akun Login</button>
                 </div>
             </form>
         </div>
