@@ -17,8 +17,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     try {
         $pdo->beginTransaction();
 
-        $stmt_b = $pdo->prepare("SELECT * FROM bookings WHERE id = ? AND refund_status = 'pending'");
-        $stmt_b->execute([$booking_id]);
+        $branch_filter = get_branch_filter();
+        $sql_b = "SELECT * FROM bookings WHERE id = ? AND refund_status = 'pending'";
+        $params_b = [$booking_id];
+        if ($branch_filter) {
+            $sql_b .= " AND branch_id = ?";
+            $params_b[] = $branch_filter;
+        }
+        $stmt_b = $pdo->prepare($sql_b);
+        $stmt_b->execute($params_b);
         $booking = $stmt_b->fetch();
 
         if (!$booking) throw new Exception("Data tidak ditemukan atau sudah diproses.");

@@ -61,7 +61,7 @@ if (isset($_GET['export'])) {
         $filename_suffix = "Bulan_" . $months_id[(int)$m] . "_" . $y;
     }
     
-    if (!has_role(['owner', 'spv']) && $user_branch_id) {
+    if (!has_role(['owner', 'manager_ops']) && $user_branch_id) {
         $sql_export .= " AND t.branch_id = ?";
         $params_ex[] = $user_branch_id;
     }
@@ -131,7 +131,7 @@ if (isset($_GET['export'])) {
 $sql_stats = "SELECT total_amount, payment_method FROM transactions WHERE DATE(created_at) = ? AND status = 'Paid'";
 $params_stats = [$today];
 
-if (!has_role(['owner', 'spv']) && $user_branch_id) {
+if (!has_role(['owner', 'manager_ops']) && $user_branch_id) {
     $sql_stats .= " AND branch_id = ?";
     $params_stats[] = $user_branch_id;
 }

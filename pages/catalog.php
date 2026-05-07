@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── GET DATA ────────────────────────────────────────
 $sql_cat = "SELECT c.*, b.name as branch_name FROM catalog c LEFT JOIN branches b ON c.branch_id = b.id WHERE c.is_active = 1";
 $params_cat = [];
-if (!in_array($role, ['owner', 'manager_ops', 'spv']) && $user_branch_id) {
+if (!in_array($role, ['owner', 'manager_ops']) && $user_branch_id) {
     $sql_cat .= " AND (c.branch_id = ? OR c.branch_id IS NULL)";
     $params_cat[] = $user_branch_id;
 }

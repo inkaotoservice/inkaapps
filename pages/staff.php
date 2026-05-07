@@ -139,8 +139,8 @@ if ($flash) {
 $branches = $pdo->query("SELECT id, name FROM branches ORDER BY name")->fetchAll();
 
 // ── FILTER CABANG — SPV default ke cabang sendiri ────────────────
-$spv_default = (is_spv() && !empty($_SESSION['branch_id'])) ? $_SESSION['branch_id'] : '';
-$filter_branch = $_GET['branch_id'] ?? $spv_default;
+$user_branch = get_branch_filter();
+$filter_branch = $user_branch ?: ($_GET['branch_id'] ?? '');
 
 // ── AMBIL DATA KARYAWAN (Selain Member) ─────────────────────────
 $sql_staff = "SELECT u.id, u.email, p.full_name, p.jobdesk, p.role, p.branch_id, b.name as branch_name 

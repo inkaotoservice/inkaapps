@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // ── FILTER & DATA ───────────────────────────────────────────────
 $filter_month = $_GET['month'] ?? date('m');
 $filter_year  = $_GET['year']  ?? date('Y');
-$filter_branch= $_GET['branch_id'] ?? $user_branch;
+$filter_branch = $user_branch ?: ($_GET['branch_id'] ?? '');
 
 // Query List Pengeluaran
 $sql = "SELECT e.*, b.name as branch_name, p.full_name as creator_name 
