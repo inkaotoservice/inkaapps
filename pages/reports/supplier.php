@@ -257,9 +257,8 @@ foreach ($flattened_data as $item) {
         <?php endif; ?>
 
         <?php if (isset($_GET['success_edit'])): ?>
-        <div class="mb-6 p-4 rounded-2xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-3 font-semibold text-sm">
-            <i data-lucide="check-circle" class="w-5 h-5"></i> Data berhasil diperbarui!
-        </div>
+        <div id="toastSuccess" style="display:none"></div>
+        <script>window._showSuccessToast = true;</script>
         <?php endif; ?>
 
         <?php if ($msg): ?>
@@ -684,6 +683,49 @@ foreach ($flattened_data as $item) {
 
     // Initial render
     renderRows();
+
+    // Toast Popup
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        const colors = type === 'success'
+            ? 'bg-emerald-600 shadow-emerald-200'
+            : 'bg-red-600 shadow-red-200';
+        const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+
+        toast.id = 'toastPopup';
+        toast.className = `fixed top-6 right-6 z-[9999] flex items-center gap-3 px-5 py-4 rounded-2xl text-white font-bold text-sm shadow-2xl ${colors} transition-all duration-500`;
+        toast.style.cssText = 'transform: translateY(-80px); opacity: 0;';
+        toast.innerHTML = `
+            <div class="p-1.5 bg-white/20 rounded-xl">
+                <i data-lucide="${icon}" class="w-5 h-5"></i>
+            </div>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()" class="ml-2 p-1 hover:bg-white/20 rounded-lg transition-all">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        `;
+        document.body.appendChild(toast);
+        lucide.createIcons();
+
+        // Animate in
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 50);
+        });
+
+        // Auto dismiss after 3.5s
+        setTimeout(() => {
+            toast.style.transform = 'translateY(-80px)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 500);
+        }, 3500);
+    }
+
+    if (window._showSuccessToast) {
+        showToast('Data pengambilan berhasil diperbarui! ✓');
+    }
 </script>
 
 <?php include '../../includes/footer.php'; ?>
