@@ -223,7 +223,7 @@ if (isset($draft) && $draft) {
                 <div class="flex justify-between items-center text-xs"><span class="font-medium text-slate-400">Subtotal</span><span id="summarySubtotal" class="font-bold text-slate-700">Rp 0</span></div>
                 <div class="flex justify-between items-center text-xs pb-2 border-b border-slate-100">
                     <span class="font-medium text-slate-400">Diskon (Rp)</span>
-                    <input type="number" id="inputDiscount" oninput="updateUI()" value="0" min="0" placeholder="0" class="w-24 text-right px-2 py-1 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 rounded outline-none focus:ring-2 focus:ring-blue-500/20">
+                    <input type="text" id="inputDiscount" oninput="onDiscountInput(this)" value="" placeholder="0" inputmode="numeric" class="w-24 text-right px-2 py-1 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 rounded outline-none focus:ring-2 focus:ring-blue-500/20" style="-moz-appearance:textfield; appearance:none;">
                 </div>
                 <div class="pt-2 border-t border-slate-100 flex justify-between items-center"><span class="text-sm font-bold text-slate-900">Total</span><span id="summaryTotal" class="text-lg font-black text-blue-600">Rp 0</span></div>
             </div>
@@ -322,12 +322,35 @@ let appliedDiscount = <?php echo $initial_data['appliedDiscount'] ?? 0; ?>;
 let selectedCategory = 'all';
 
 document.addEventListener('DOMContentLoaded', () => { 
-    if (document.getElementById('inputDiscount')) {
-        document.getElementById('inputDiscount').value = appliedDiscount || '';
+    const discEl = document.getElementById('inputDiscount');
+    if (discEl && appliedDiscount > 0) {
+        discEl.value = formatRibuan(appliedDiscount);
     }
     fetchCatalog(); 
     updateUI(); 
 });
+
+// ── FORMAT RIBUAN HELPERS ─────────────────────────────────────────
+function formatRibuan(num) {
+    if (!num && num !== 0) return '';
+    return parseInt(num).toLocaleString('id-ID');
+}
+
+function parseRibuan(str) {
+    if (!str) return 0;
+    // Hapus titik pemisah ribuan sebelum parsing
+    return parseInt(str.toString().replace(/\./g, '').replace(/[^0-9]/g, '')) || 0;
+}
+
+function onDiscountInput(el) {
+    const raw = parseRibuan(el.value);
+    const cursorAtEnd = el.selectionStart === el.value.length;
+    el.value = raw > 0 ? formatRibuan(raw) : '';
+    if (cursorAtEnd) {
+        el.selectionStart = el.selectionEnd = el.value.length;
+    }
+    updateUI();
+}
 
 function fetchCatalog() {
     const q = document.getElementById('catalogSearch').value;
@@ -398,10 +421,10 @@ function updateUI() {
     const dp = (activeCustomer && activeCustomer.dp_amount) ? parseInt(activeCustomer.dp_amount) : 0;
     
     const discInput = document.getElementById('inputDiscount');
-    let discount = discInput ? (parseInt(discInput.value) || 0) : appliedDiscount;
+    let discount = discInput ? (parseRibuan(discInput.value) || 0) : appliedDiscount;
     if (discount > subtotal) {
         discount = subtotal;
-        if (discInput) discInput.value = discount;
+        if (discInput) discInput.value = formatRibuan(discount);
     }
     appliedDiscount = discount;
     
