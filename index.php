@@ -57,7 +57,7 @@ $br_sql = "SELECT br.id, br.name,
            COUNT(t.id) as tx_count
     FROM branches br
     LEFT JOIN transactions t ON t.branch_id = br.id AND t.status='Paid' AND t.created_at >= '{$month_start}'";
-if ($spv_branch) { $br_sql .= " WHERE br.id = '" . $pdo->quote($spv_branch) . "'"; }
+if ($spv_branch) { $br_sql .= " WHERE br.id = " . $pdo->quote($spv_branch); }
 $br_sql .= " GROUP BY br.id, br.name ORDER BY revenue DESC";
 $branches_data = $pdo->query($br_sql)->fetchAll();
 
