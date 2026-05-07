@@ -184,20 +184,28 @@ function format_role($role) {
             <i data-lucide="menu"></i>
         </button>
 
-        <div class="flex-1 lg:ml-0 px-4">
+        <div class="flex-1 lg:ml-0 px-4 flex items-center gap-3">
             <h1 class="text-sm sm:text-lg font-semibold text-slate-900 truncate uppercase tracking-widest opacity-60">
                 Manajemen Karyawan
             </h1>
+            <?php if (is_spv_branch()): ?>
+            <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-indigo-100 flex items-center gap-1">
+                <i data-lucide="map-pin" class="w-3 h-3"></i>
+                <?php echo htmlspecialchars(get_spv_branch_label()); ?>
+            </span>
+            <?php endif; ?>
         </div>
 
         <div class="flex items-center gap-3">
             <form method="GET" class="hidden md:flex items-center gap-2">
+                <?php if (!is_spv_branch()): ?>
                 <select name="branch_id" onchange="this.form.submit()" class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10">
                     <option value="">Semua Cabang</option>
                     <?php foreach($branches as $b): ?>
                         <option value="<?php echo $b['id']; ?>" <?php echo $filter_branch == $b['id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($b['name']); ?></option>
                     <?php endforeach; ?>
                 </select>
+                <?php endif; ?>
             </form>
             <button onclick="openModal('modalAdd')" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
                 <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Pekerja

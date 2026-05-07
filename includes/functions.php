@@ -28,6 +28,39 @@ function is_manager() { return has_role(['manager_ops']); }
 function is_spv()    { return has_role(['spv']); }
 function is_admin()  { return has_role(['admin','admin_depok','admin_bsd']); }
 
+// Apakah SPV ini terikat ke cabang tertentu (bukan SPV Pusat)?
+function is_spv_branch() {
+    return is_spv() && !empty($_SESSION['branch_id']);
+}
+
+// Kembalikan branch_id untuk dipakai sebagai filter query.
+// - Owner/Manager: null (tidak dibatasi)
+// - SPV dengan cabang: branch_id cabangnya
+// - Admin cabang: branch_id cabangnya
+// - SPV Pusat (branch_id null): null (lihat semua)
+function get_branch_filter() {
+    $role = get_role();
+    if (in_array($role, ['owner', 'manager_ops'])) {
+        return null; // tidak dibatasi
+    }
+    return $_SESSION['branch_id'] ?? null;
+}
+
+// Label nama cabang SPV untuk ditampilkan di UI
+function get_spv_branch_label() {
+    global $pdo;
+    $branch_id = $_SESSION['branch_id'] ?? null;
+    if (!$branch_id) return 'Pusat / Semua Cabang';
+    try {
+        $stmt = $pdo->prepare("SELECT name FROM branches WHERE id = ? LIMIT 1");
+        $stmt->execute([$branch_id]);
+        $name = $stmt->fetchColumn();
+        return $name ?: 'Pusat / Semua Cabang';
+    } catch (Exception $e) {
+        return 'Pusat / Semua Cabang';
+    }
+}
+
 // Redirect based on role after login
 function redirect_by_role() {
     $role = get_role();
@@ -86,7 +119,7 @@ function get_navigation() {
         ['name'=>'Marketing & Pelanggan','href'=>'pages/analytics/marketing.php', 'icon'=>'users',            'roles'=>['owner','manager_ops'],                          'group'=>'Analisis'],
         // Keuangan
         ['name'=>'Daftar Antrian Refund','href'=>'pages/antrian-refund.php',      'icon'=>'banknote',         'roles'=>['owner','manager_ops','admin','admin_depok','admin_bsd','spv'], 'group'=>'Keuangan'],
-        ['name'=>'Laporan Keuangan',    'href'=>'pages/reports.php',              'icon'=>'clipboard-list',   'roles'=>['owner','manager_ops'],                          'group'=>'Keuangan'],
+        ['name'=>'Laporan Keuangan',    'href'=>'pages/reports.php',              'icon'=>'clipboard-list',   'roles'=>['owner','manager_ops','spv'],                          'group'=>'Keuangan'],
         ['name'=>'Rekap Supplier',      'href'=>'pages/reports/supplier.php',     'icon'=>'package',          'roles'=>['owner','manager_ops','spv','admin','admin_depok','admin_bsd'], 'group'=>'Keuangan'],
         ['name'=>'Pengeluaran',         'href'=>'pages/expenses.php',             'icon'=>'trending-down',    'roles'=>['owner','manager_ops','spv','admin','admin_depok','admin_bsd'], 'group'=>'Keuangan'],
         ['name'=>'Laporan Shift',       'href'=>'pages/shift-report.php',         'icon'=>'clipboard-list',   'roles'=>['admin','admin_depok','admin_bsd','owner','manager_ops','spv'], 'group'=>'Laporan'],

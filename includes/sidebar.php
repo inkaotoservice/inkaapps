@@ -90,6 +90,14 @@ $current_path   = $_SERVER['SCRIPT_NAME'];
             </div>
             <div class="min-w-0">
                 <p class="font-black text-slate-900 text-xs truncate"><?php echo $_SESSION['full_name'] ?? 'User'; ?></p>
+                <?php if (is_spv_branch()): ?>
+                <p class="text-[9px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                    <i data-lucide="map-pin" class="w-2.5 h-2.5"></i>
+                    <?php echo htmlspecialchars(get_spv_branch_label()); ?>
+                </p>
+                <?php else: ?>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5"><?php echo $role_cfg['label']; ?></p>
+                <?php endif; ?>
             </div>
         </div>
     </div>

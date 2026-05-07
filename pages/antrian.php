@@ -8,7 +8,7 @@ if (!has_role(['admin','admin_depok','admin_bsd','spv','owner','manager_ops'])) 
 }
 
 $page_title = 'Papan Antrian Service';
-$branch_id = $_SESSION['branch_id'] ?? null;
+$branch_id = get_branch_filter(); // SPV cabang → branch_id, owner/manager → null
 $role = get_role();
 
 // ── HANDLER AJAX GET DATA (HARUS DI PALING ATAS, SEBELUM HTML) ───
@@ -29,7 +29,8 @@ function get_active_bookings($pdo, $branch_id, $role, $filter_date = null, $sear
         $params[] = $filter_date;
     }
 
-    if ($branch_id && !in_array($role, ['owner', 'manager_ops', 'spv'])) {
+    // Filter: owner & manager_ops lihat semua (branch_id null), sisanya dibatasi
+    if ($branch_id) {
         $sql .= " AND b.branch_id = ?";
         $params[] = $branch_id;
     }

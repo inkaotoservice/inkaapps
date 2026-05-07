@@ -11,43 +11,55 @@ $role       = get_role();
 $role_cfg   = get_role_config();
 $first_name = explode(' ', $_SESSION['full_name'])[0];
 
+// ── FILTER CABANG (SPV hanya lihat cabangnya) ─────────────────────
+$spv_branch = get_branch_filter(); // null = lihat semua
+
 // ── AMBIL DATA STATISTIK ──────────────────────────────────────────
 $month_start = date('Y-m-01 00:00:00');
 $today_start = date('Y-m-d 00:00:00');
 
 // Revenue bulan ini
-$rev = $pdo->prepare("SELECT COALESCE(SUM(total_amount),0) as total FROM transactions WHERE status='Paid' AND created_at >= ?");
-$rev->execute([$month_start]);
+$rev_sql = "SELECT COALESCE(SUM(total_amount),0) as total FROM transactions WHERE status='Paid' AND created_at >= ?";
+$rev_params = [$month_start];
+if ($spv_branch) { $rev_sql .= " AND branch_id = ?"; $rev_params[] = $spv_branch; }
+$rev = $pdo->prepare($rev_sql);
+$rev->execute($rev_params);
 $revenue = $rev->fetchColumn();
 
 // Booking hari ini
-$book_today = $pdo->prepare("SELECT COUNT(*) FROM bookings WHERE created_at >= ?");
-$book_today->execute([$today_start]);
+$book_sql = "SELECT COUNT(*) FROM bookings WHERE created_at >= ?";
+$book_params = [$today_start];
+if ($spv_branch) { $book_sql .= " AND branch_id = ?"; $book_params[] = $spv_branch; }
+$book_today = $pdo->prepare($book_sql);
+$book_today->execute($book_params);
 $today_bookings = $book_today->fetchColumn();
 
 // Pengeluaran bulan ini
-$exp = $pdo->prepare("SELECT COALESCE(SUM(amount),0) FROM expenses WHERE created_at >= ?");
-$exp->execute([$month_start]);
+$exp_sql = "SELECT COALESCE(SUM(amount),0) FROM expenses WHERE created_at >= ?";
+$exp_params = [$month_start];
+if ($spv_branch) { $exp_sql .= " AND branch_id = ?"; $exp_params[] = $spv_branch; }
+$exp = $pdo->prepare($exp_sql);
+$exp->execute($exp_params);
 $expenses_month = $exp->fetchColumn();
 
 // Booking terbaru
-$recent_bookings = $pdo->query("
-    SELECT b.*, br.name as branch_name
-    FROM bookings b
-    LEFT JOIN branches br ON b.branch_id = br.id
-    ORDER BY b.created_at DESC LIMIT 5
-")->fetchAll();
+$rb_sql = "SELECT b.*, br.name as branch_name FROM bookings b LEFT JOIN branches br ON b.branch_id = br.id";
+$rb_params = [];
+if ($spv_branch) { $rb_sql .= " WHERE b.branch_id = ?"; $rb_params[] = $spv_branch; }
+$rb_sql .= " ORDER BY b.created_at DESC LIMIT 5";
+$stmt_rb = $pdo->prepare($rb_sql);
+$stmt_rb->execute($rb_params);
+$recent_bookings = $stmt_rb->fetchAll();
 
-// Data cabang & revenue
-$branches_data = $pdo->query("
-    SELECT br.id, br.name,
+// Data cabang & revenue (SPV hanya lihat cabangnya sendiri)
+$br_sql = "SELECT br.id, br.name,
            COALESCE(SUM(t.total_amount),0) as revenue,
            COUNT(t.id) as tx_count
     FROM branches br
-    LEFT JOIN transactions t ON t.branch_id = br.id AND t.status='Paid' AND t.created_at >= '{$month_start}'
-    GROUP BY br.id, br.name
-    ORDER BY revenue DESC
-")->fetchAll();
+    LEFT JOIN transactions t ON t.branch_id = br.id AND t.status='Paid' AND t.created_at >= '{$month_start}'";
+if ($spv_branch) { $br_sql .= " WHERE br.id = '" . $pdo->quote($spv_branch) . "'"; }
+$br_sql .= " GROUP BY br.id, br.name ORDER BY revenue DESC";
+$branches_data = $pdo->query($br_sql)->fetchAll();
 
 $monthly_target = 500000000; // Default target
 $overall_pct    = $monthly_target > 0 ? min(round(($revenue / $monthly_target) * 100), 100) : 0;

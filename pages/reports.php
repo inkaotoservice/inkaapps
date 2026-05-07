@@ -3,21 +3,22 @@ require_once '../includes/config.php';
 require_once '../includes/functions.php';
 auth_ready();
 
-// Hanya Owner dan Manager Ops yang berhak melihat laporan keuangan lengkap
-if (!has_role(['owner', 'manager_ops'])) {
+// Owner, Manager Ops, dan SPV yang boleh akses laporan
+if (!has_role(['owner', 'manager_ops', 'spv'])) {
     header("Location: " . BASE_URL . "index.php"); exit();
 }
 
 $page_title = 'Laporan Keuangan & Laba Rugi';
 $filter_year = $_GET['year'] ?? date('Y');
-$filter_branch = $_GET['branch_id'] ?? '';
+
+// SPV cabang: branch_id terkunci ke cabangnya, tidak bisa ganti
+$spv_branch = get_branch_filter();
+$filter_branch = $spv_branch ?: ($_GET['branch_id'] ?? '');
 
 // ── AMBIL DATA CABANG UNTUK FILTER ──────────────────────────────
 $branches = $pdo->query("SELECT id, name FROM branches ORDER BY name")->fetchAll();
 
 // ── QUERY DATA PER BULAN ────────────────────────────────────────
-// Kita akan mengambil data Pemasukan (Transaksi POS) dan Pengeluaran per bulan
-// untuk tahun yang dipilih.
 $months_data = [];
 for ($m = 1; $m <= 12; $m++) {
     $months_data[$m] = [
@@ -115,14 +116,24 @@ $chart_profit  = json_encode(array_column($months_data, 'profit'));
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
                 <div class="flex items-center gap-2 text-slate-500 font-semibold text-sm">
                     <i data-lucide="calendar" class="w-4 h-4"></i> Filter Laporan
+                    <?php if (is_spv_branch()): ?>
+                    <span class="ml-2 px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-widest rounded-full border border-indigo-100">
+                        <i data-lucide="map-pin" class="w-3 h-3 inline-block mr-1"></i>
+                        <?php echo htmlspecialchars(get_spv_branch_label()); ?>
+                    </span>
+                    <?php endif; ?>
                 </div>
                 <form action="" method="GET" class="flex items-center gap-3 w-full sm:w-auto">
+                    <?php if (!is_spv_branch()): ?>
                     <select name="branch_id" class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm font-semibold flex-1 sm:w-48">
                         <option value="">Semua Cabang</option>
                         <?php foreach($branches as $b): ?>
                             <option value="<?php echo $b['id']; ?>" <?php echo $filter_branch == $b['id'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($b['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php else: ?>
+                    <input type="hidden" name="branch_id" value="<?php echo htmlspecialchars($filter_branch); ?>">
+                    <?php endif; ?>
                     <select name="year" class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 outline-none text-sm font-semibold w-28">
                         <?php for($y=date('Y')-2; $y<=date('Y'); $y++): ?>
                             <option value="<?php echo $y; ?>" <?php echo $filter_year == $y ? 'selected' : ''; ?>><?php echo $y; ?></option>

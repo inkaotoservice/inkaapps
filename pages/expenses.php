@@ -11,7 +11,7 @@ if (!has_role(['admin','admin_depok','admin_bsd','spv','owner','manager_ops'])) 
 $page_title = 'Pencatatan Pengeluaran';
 $msg = '';
 $msg_type = '';
-$user_branch = $_SESSION['branch_id'] ?? null;
+$user_branch = get_branch_filter(); // owner/manager → null, SPV cabang → branch_id
 $user_id = $_SESSION['user_id'];
 
 // ── PROSES INPUT PENGELUARAN ────────────────────────────────────
@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $category     = $_POST['category'];
         $amount       = (int)str_replace('.', '', $_POST['amount']);
         $description  = trim($_POST['description']);
-        // Jika admin cabang, pakai session branch. Jika owner/manager/SPV, ambil dari form.
-        $branch_id = (!empty($user_branch) && !is_spv()) ? $user_branch : ($_POST['branch_id'] ?? $user_branch);
+        // Admin/SPV cabang → pakai branch session. Owner/manager → ambil dari form.
+        $branch_id = $user_branch ?: ($_POST['branch_id'] ?? null);
 
         if ($branch_id && $amount > 0) {
             try {
@@ -91,9 +91,9 @@ foreach ($expenses as $e) {
     $total_expense += $e['amount'];
 }
 
-// Ambil list cabang untuk dropdown (owner, manager, dan SPV bisa lihat semua cabang)
+// Ambil list cabang untuk dropdown (hanya owner & manager yang bisa ganti cabang)
 $branches = [];
-if (!$user_branch || is_spv()) {
+if (!$user_branch) {
     $branches = $pdo->query("SELECT id, name FROM branches ORDER BY name")->fetchAll();
 }
 
