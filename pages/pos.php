@@ -64,13 +64,14 @@ if (isset($_GET['ajax'])) {
                 $pdo->prepare("DELETE FROM transaction_items WHERE transaction_id = ?")->execute([$transaction_id]);
             }
 
-            $stmt = $pdo->prepare("INSERT INTO transactions (id, booking_id, branch_id, customer_name, total_amount, dp_amount, payment_method, status, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW()) 
+            $stmt = $pdo->prepare("INSERT INTO transactions (id, booking_id, branch_id, customer_name, total_amount, dp_amount, discount, payment_method, status, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) 
                 ON DUPLICATE KEY UPDATE 
                 booking_id = VALUES(booking_id),
                 customer_name = VALUES(customer_name), 
                 total_amount = VALUES(total_amount), 
                 dp_amount = VALUES(dp_amount),
+                discount = VALUES(discount),
                 payment_method = VALUES(payment_method), 
                 status = VALUES(status)");
             
@@ -81,6 +82,7 @@ if (isset($_GET['ajax'])) {
                 $data['customer_name'],
                 $data['total_amount'],
                 $data['dp_amount'] ?? 0,
+                $data['discount'] ?? 0,
                 $data['payment_method'] ?? 'Cash',
                 $status
             ]);
@@ -114,7 +116,7 @@ if (isset($_GET['ajax'])) {
 }
 
 // ── LOAD DATA AWAL (Pencarian Draft Aktif) ────────────────────────
-$initial_data = ['activeCustomer' => null, 'cart' => [], 'currentDraftId' => $_GET['draft_id'] ?? '', 'currentBookingId' => $_GET['booking_id'] ?? ''];
+$initial_data = ['activeCustomer' => null, 'cart' => [], 'currentDraftId' => $_GET['draft_id'] ?? '', 'currentBookingId' => $_GET['booking_id'] ?? '', 'appliedDiscount' => 0];
 
 // 1. Prioritas ID Draft Langsung
 if (!empty($initial_data['currentDraftId'])) {
@@ -157,6 +159,7 @@ elseif (!empty($_GET['customer'])) {
 
 if (isset($draft) && $draft) {
     $initial_data['currentDraftId'] = $draft['id'];
+    $initial_data['appliedDiscount'] = $draft['discount'] ?? 0;
     $initial_data['activeCustomer'] = [
         'id' => $draft['booking_id'], 
         'customer_name' => $draft['customer_name'], 
@@ -218,6 +221,10 @@ if (isset($draft) && $draft) {
         <div class="px-4 py-3 bg-white border-t border-slate-200">
             <div class="space-y-2 mb-4">
                 <div class="flex justify-between items-center text-xs"><span class="font-medium text-slate-400">Subtotal</span><span id="summarySubtotal" class="font-bold text-slate-700">Rp 0</span></div>
+                <div class="flex justify-between items-center text-xs pb-2 border-b border-slate-100">
+                    <span class="font-medium text-slate-400">Diskon (Rp)</span>
+                    <input type="number" id="inputDiscount" oninput="updateUI()" value="0" min="0" placeholder="0" class="w-24 text-right px-2 py-1 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 rounded outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
                 <div class="pt-2 border-t border-slate-100 flex justify-between items-center"><span class="text-sm font-bold text-slate-900">Total</span><span id="summaryTotal" class="text-lg font-black text-blue-600">Rp 0</span></div>
             </div>
             <div class="grid grid-cols-2 gap-2 mt-4">
@@ -311,9 +318,16 @@ let catalog = []; let cart = <?php echo json_encode($initial_data['cart']); ?>;
 let activeCustomer = <?php echo json_encode($initial_data['activeCustomer']); ?>;
 let currentDraftId = '<?php echo $initial_data['currentDraftId']; ?>';
 let currentBookingId = '<?php echo $initial_data['currentBookingId']; ?>';
+let appliedDiscount = <?php echo $initial_data['appliedDiscount'] ?? 0; ?>;
 let selectedCategory = 'all';
 
-document.addEventListener('DOMContentLoaded', () => { fetchCatalog(); updateUI(); });
+document.addEventListener('DOMContentLoaded', () => { 
+    if (document.getElementById('inputDiscount')) {
+        document.getElementById('inputDiscount').value = appliedDiscount || '';
+    }
+    fetchCatalog(); 
+    updateUI(); 
+});
 
 function fetchCatalog() {
     const q = document.getElementById('catalogSearch').value;
@@ -382,7 +396,16 @@ function updateUI() {
     }
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     const dp = (activeCustomer && activeCustomer.dp_amount) ? parseInt(activeCustomer.dp_amount) : 0;
-    const total = subtotal - dp;
+    
+    const discInput = document.getElementById('inputDiscount');
+    let discount = discInput ? (parseInt(discInput.value) || 0) : appliedDiscount;
+    if (discount > subtotal) {
+        discount = subtotal;
+        if (discInput) discInput.value = discount;
+    }
+    appliedDiscount = discount;
+    
+    const total = Math.max(0, subtotal - discount - dp);
     
     document.getElementById('summarySubtotal').innerText = 'Rp ' + subtotal.toLocaleString();
     
@@ -442,7 +465,8 @@ function processCheckout() {
     if (cart.length === 0) { showToast('error', 'Gagal', 'Keranjang kosong'); return; } 
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     const dp = (activeCustomer && activeCustomer.dp_amount) ? parseInt(activeCustomer.dp_amount) : 0;
-    const total = subtotal - dp;
+    const discount = appliedDiscount;
+    const total = Math.max(0, subtotal - discount - dp);
     document.getElementById('confirmTotalRp').innerText = 'Rp ' + total.toLocaleString();
     
     // Reset selection to Cash when modal opens
@@ -460,6 +484,7 @@ function executeCheckout() {
 function processTransaction(status) {
     const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     const dp = (activeCustomer && activeCustomer.dp_amount) ? parseInt(activeCustomer.dp_amount) : 0;
+    const discount = appliedDiscount;
     const data = {
         transaction_id: currentDraftId,
         customer_name: activeCustomer ? activeCustomer.customer_name : 'Guest',
@@ -467,8 +492,9 @@ function processTransaction(status) {
         payment_method: status === 'Paid' 
             ? document.querySelector('input[name="modal_pay_method"]:checked').value 
             : 'Cash',
-        total_amount: subtotal, 
+        total_amount: Math.max(0, subtotal - discount), 
         dp_amount: dp,
+        discount: discount,
         status: status, 
         items: cart
     };
@@ -513,6 +539,11 @@ function showSuccessModal(txId, txData) {
             dpText = 'Potongan DP   : Rp ' + txData.dp_amount.toLocaleString('id-ID') + '\n';
         }
         
+        let discText = '';
+        if (txData.discount > 0) {
+            discText = 'Diskon        : Rp ' + txData.discount.toLocaleString('id-ID') + '\n';
+        }
+        
         let carText = '';
         if (activeCustomer && activeCustomer.car_model) {
             carText = '*KENDARAAN:* ' + activeCustomer.car_model + ' (' + (activeCustomer.license_plate || '-') + ')\n';
@@ -528,7 +559,8 @@ function showSuccessModal(txId, txData) {
                      '*RINCIAN TRANSAKSI:*\n\n' +
                      itemsList + '\n' +
                      '-----------------------------\n' +
-                     'Subtotal      : Rp ' + txData.total_amount.toLocaleString('id-ID') + '\n' +
+                     'Subtotal      : Rp ' + (txData.total_amount + txData.discount).toLocaleString('id-ID') + '\n' +
+                     discText +
                      dpText +
                      '=============================\n' +
                      '*TOTAL BAYAR   : Rp ' + (txData.total_amount - txData.dp_amount).toLocaleString('id-ID') + '*\n' +

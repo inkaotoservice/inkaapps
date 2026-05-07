@@ -401,6 +401,11 @@ $invoice_no = "INV-" . strtoupper(substr(str_replace('-', '', $tx['id']), 0, 8))
                 $dp_text = "Potongan DP   : Rp " . number_format($tx['dp_amount'], 0, ',', '.') . "\n";
             }
             
+            $disc_text = "";
+            if (!empty($tx['discount']) && $tx['discount'] > 0) {
+                $disc_text = "Diskon        : Rp " . number_format($tx['discount'], 0, ',', '.') . "\n";
+            }
+            
             $car_text = "";
             if (!empty($tx['car_model'])) {
                 $car_text = "*KENDARAAN:* " . $tx['car_model'] . " (" . $tx['license_plate'] . ")\n";
@@ -419,7 +424,8 @@ $invoice_no = "INV-" . strtoupper(substr(str_replace('-', '', $tx['id']), 0, 8))
                        "*RINCIAN TRANSAKSI:*\n\n" .
                        $items_text . 
                        "-----------------------------\n" .
-                       "Subtotal      : Rp " . number_format($tx['total_amount'], 0, ',', '.') . "\n" .
+                       "Subtotal      : Rp " . number_format($tx['total_amount'] + ($tx['discount'] ?? 0), 0, ',', '.') . "\n" .
+                       $disc_text .
                        $dp_text .
                        "=============================\n" .
                        "*TOTAL BAYAR   : Rp " . number_format($final_total, 0, ',', '.') . "*\n" .
@@ -545,6 +551,12 @@ $invoice_no = "INV-" . strtoupper(substr(str_replace('-', '', $tx['id']), 0, 8))
                     <span>Subtotal</span>
                     <span>Rp <?php echo number_format($subtotal, 0, ',', '.'); ?></span>
                 </div>
+                <?php if (!empty($tx['discount']) && $tx['discount'] > 0): ?>
+                <div class="totals-row" style="color: #ef4444; font-weight: 600;">
+                    <span>Diskon</span>
+                    <span>- Rp <?php echo number_format($tx['discount'], 0, ',', '.'); ?></span>
+                </div>
+                <?php endif; ?>
                 <?php if ($tx['dp_amount'] > 0): ?>
                 <div class="totals-row" style="color: #059669; font-weight: 600;">
                     <span>Down Payment (DP)</span>
@@ -553,7 +565,7 @@ $invoice_no = "INV-" . strtoupper(substr(str_replace('-', '', $tx['id']), 0, 8))
                 <?php endif; ?>
                 <div class="totals-row grand-total">
                     <span><?php echo $tx['status'] === 'Paid' ? 'TOTAL BAYAR' : 'SISA TAGIHAN'; ?></span>
-                    <span>Rp <?php echo number_format($subtotal - $tx['dp_amount'], 0, ',', '.'); ?></span>
+                    <span>Rp <?php echo number_format($subtotal - ($tx['discount'] ?? 0) - $tx['dp_amount'], 0, ',', '.'); ?></span>
                 </div>
             </div>
         </div>
