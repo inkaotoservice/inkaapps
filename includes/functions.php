@@ -1,5 +1,17 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    // Pengaturan session agar lebih stabil di server production
+    $is_secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => $_SERVER['HTTP_HOST'],
+        'secure' => $is_secure,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
 
 // -----------------------------------------------
 // AUTH HELPERS
@@ -184,4 +196,3 @@ function get_flash_msg() {
     unset($_SESSION['flash_msg']);
     return $flash;
 }
-?>
