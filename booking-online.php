@@ -333,7 +333,7 @@ $branches = $stmt_br->fetchAll();
                 </div>
 
                 <?php 
-                    $wa_msg = urlencode("Halo Admin Inka Otoservice 👋\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n✅ *Kode Booking: " . $booking['booking_code'] . "*\n👤 *Nama:* " . $booking['customer_name'] . "\n🚗 *Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n📅 *Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih! 🙏");
+                    $wa_msg = urlencode("Halo Admin " . $booking['branch_name'] . " 👋\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n✅ *Kode Booking: " . $booking['booking_code'] . "*\n👤 *Nama:* " . $booking['customer_name'] . "\n🚗 *Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n🏪 *Cabang Tujuan:* " . $booking['branch_name'] . "\n📅 *Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih! 🙏");
                     $wa_number = !empty($booking['branch_whatsapp']) ? $booking['branch_whatsapp'] : "6281234567890"; 
                 ?>
                 
