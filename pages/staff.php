@@ -385,7 +385,13 @@ function format_role($role) {
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Password</label>
-                        <input type="password" name="password" required value="inka2026" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none text-sm font-semibold">
+                        <div class="relative">
+                            <input type="password" name="password" id="addLoginPassword" required value="inka2026" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none text-sm font-semibold pr-10">
+                            <button type="button" onclick="togglePasswordVisibility('addLoginPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 focus:outline-none transition-colors">
+                                <i data-lucide="eye" class="w-5 h-5 icon-eye"></i>
+                                <i data-lucide="eye-off" class="w-5 h-5 icon-eye-off hidden"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
@@ -499,6 +505,22 @@ $extra_js = <<<JS
         content.classList.remove('scale-100', 'opacity-100');
         content.classList.add('scale-95', 'opacity-0');
         setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const eye = btn.querySelector('.icon-eye');
+        const eyeOff = btn.querySelector('.icon-eye-off');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (eye) eye.classList.add('hidden');
+            if (eyeOff) eyeOff.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            if (eye) eye.classList.remove('hidden');
+            if (eyeOff) eyeOff.classList.add('hidden');
+        }
     }
 
     function openEditModal(staff) {
