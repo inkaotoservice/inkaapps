@@ -1,5 +1,4 @@
 <?php
-$_SERVER['SERVER_NAME'] = 'localhost';
 require 'includes/config.php';
 try {
     $pdo->exec("ALTER TABLE transactions ADD COLUMN discount INT DEFAULT 0 AFTER total_amount");
