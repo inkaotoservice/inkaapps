@@ -6,15 +6,8 @@ $step = $_GET['step'] ?? 1;
 $booking_id = $_GET['id'] ?? null;
 
 // Fetch settings
-$stmt_settings = $pdo->query("SELECT `key`, `value` FROM app_settings");
-$app_settings = [];
-while ($row = $stmt_settings->fetch()) {
-    $app_settings[$row['key']] = $row['value'];
-}
-$dp_amount = $app_settings['booking_dp'] ?? 50000;
-$bank_name = $app_settings['payment_bank_name'] ?? 'Bank BCA';
-$bank_account = $app_settings['payment_account_number'] ?? '1234567890';
-$bank_holder = $app_settings['payment_account_name'] ?? 'PT Inka Otoservice';
+$stmt_dp = $pdo->query("SELECT `value` FROM app_settings WHERE `key` = 'booking_dp'");
+$dp_amount = $stmt_dp->fetchColumn() ?: 50000;
 
 // AJAX: Get booked times
 if (isset($_GET['action']) && $_GET['action'] === 'get_booked_times') {
@@ -43,6 +36,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     $service_date = $_POST['service_date'];
     $service_time = $_POST['service_time'];
     $notes = trim($_POST['notes']);
+    $service_type = $_POST['service_type'] ?? '';
+    
+    // Gabungkan jenis layanan ke dalam catatan agar admin tahu
+    if ($service_type) {
+        $notes = "[" . strtoupper($service_type) . "] " . $notes;
+    }
     
     // Create new booking with status awaiting_dp
     $id = uuid();
@@ -50,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     
     $stmt = $pdo->prepare("
         INSERT INTO bookings (id, customer_name, customer_phone, car_model, license_plate, branch_id, service_date, service_time, notes, booking_code, booking_type, status, is_online)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'online', 'pending', 1)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'online', 'awaiting_dp', 1)
     ");
     $stmt->execute([$id, $name, $phone, $car_model, $license_plate, $branch_id, $service_date, $service_time, $notes, $booking_code]);
     
@@ -100,9 +99,8 @@ $branches = $stmt_br->fetchAll();
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        * { font-family: 'Inter', sans-serif; }
-    <style>
-        * { font-family: 'Inter', sans-serif; }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        body { -webkit-tap-highlight-color: transparent; }
         .glass { background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
         
         @keyframes slideIn {
@@ -115,6 +113,11 @@ $branches = $stmt_br->fetchAll();
         }
         .toast-active { animation: slideIn 0.3s ease-out forwards; }
         .toast-inactive { animation: slideOut 0.3s ease-in forwards; }
+        
+        /* Mobile specific adjustments */
+        @media (max-width: 640px) {
+            input, select, textarea { font-size: 16px !important; } /* Prevents iOS zoom on focus */
+        }
     </style>
 </head>
 <body class="min-h-screen bg-slate-50 py-6 sm:py-12 px-4 relative overflow-y-auto">
@@ -178,18 +181,43 @@ $branches = $stmt_br->fetchAll();
                         </div>
                     </div>
 
+                    <!-- JENIS LAYANAN (Radio Cards) -->
+                    <div class="pt-4 border-t border-slate-200">
+                        <label class="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Pilih Jenis Layanan</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Service AC -->
+                            <label class="relative flex flex-col p-4 cursor-pointer rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-blue-500 transition-all group has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+                                <input type="radio" name="service_type" value="AC" class="sr-only peer">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                                        <i data-lucide="snowflake" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="font-bold text-sm text-slate-800">Service AC</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 font-medium">Khusus Depok</p>
+                            </label>
+                            
+                            <!-- Service Kaki-kaki -->
+                            <label class="relative flex flex-col p-4 cursor-pointer rounded-2xl border-2 border-slate-100 bg-slate-50/50 hover:bg-white hover:border-blue-500 transition-all group has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50/50">
+                                <input type="radio" name="service_type" value="Kaki-kaki" checked class="sr-only peer">
+                                <div class="flex items-center gap-3 mb-1">
+                                    <div class="w-8 h-8 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                                        <i data-lucide="wrench" class="w-4 h-4"></i>
+                                    </div>
+                                    <span class="font-bold text-sm text-slate-800">Kaki-kaki</span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 font-medium">Depok & BSD</p>
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 pt-4 border-t border-slate-200">
                         <div class="md:col-span-2">
                             <label class="block text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Cabang Inka Otoservice</label>
                             <select name="branch_id" required class="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-sm text-slate-800">
                                 <option value="">-- Pilih Cabang Tujuan --</option>
                                 <?php foreach ($branches as $br): ?>
-                                    <option value="<?php echo $br['id']; ?>">
-                                        <?php 
-                                            $area = !empty($br['address']) ? explode(' ', trim($br['address']))[0] : '';
-                                            echo htmlspecialchars($br['name'] . ($area ? ' - ' . $area : '')); 
-                                        ?>
-                                    </option>
+                                    <option value="<?php echo $br['id']; ?>"><?php echo htmlspecialchars($br['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -259,11 +287,11 @@ $branches = $stmt_br->fetchAll();
                     <p class="text-[10px] font-semibold text-slate-400 mb-4 italic">Silahkan lakukan pembayaran booking, klik tombol copy rekening, terimakasih</p>
                     <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
                         <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest"><?php echo htmlspecialchars($bank_name); ?></p>
-                            <p class="font-bold text-slate-800 text-lg sm:text-xl"><?php echo htmlspecialchars($bank_account); ?></p>
-                            <p class="text-xs sm:text-sm text-slate-500 font-medium">a.n. <?php echo htmlspecialchars($bank_holder); ?></p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank BCA</p>
+                            <p class="font-bold text-slate-800 text-lg sm:text-xl">123 456 7890</p>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium">a.n. PT Inka Otoservice</p>
                         </div>
-                        <button onclick="copyToClipboard('<?php echo str_replace(' ', '', $bank_account); ?>')" class="w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center border border-blue-100 transition-all active:scale-90 group">
+                        <button onclick="copyToClipboard('1234567890')" class="w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center border border-blue-100 transition-all active:scale-90 group">
                             <i data-lucide="copy" class="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform"></i>
                         </button>
                     </div>
@@ -321,8 +349,8 @@ $branches = $stmt_br->fetchAll();
                 <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-600"></i>
                 </div>
-                <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Pendaftaran Berhasil!</h2>
-                <p class="text-slate-500 font-medium mb-8 text-sm px-4">Pendaftaran Anda telah tercatat di sistem kami. **Satu langkah lagi:** Silakan kirimkan foto bukti transfer Anda ke WhatsApp Admin untuk konfirmasi akhir.</p>
+                <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Hampir Selesai!</h2>
+                <p class="text-slate-500 font-medium mb-8 text-sm px-4">Pendaftaran sudah masuk ke sistem. **Jangan lupa lampirkan foto bukti transfer** Anda di chat WhatsApp yang baru saja terbuka.</p>
                 
                 <div class="bg-slate-50 rounded-2xl p-5 sm:p-6 border border-slate-200 mb-6 sm:mb-8 inline-block text-left w-full max-w-sm">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kode Booking</p>
@@ -333,22 +361,21 @@ $branches = $stmt_br->fetchAll();
                 </div>
 
                 <?php 
-                    $wa_msg = urlencode("Halo Admin " . $booking['branch_name'] . " 👋\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n✅ *Kode Booking: " . $booking['booking_code'] . "*\n👤 *Nama:* " . $booking['customer_name'] . "\n🚗 *Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n🏪 *Cabang Tujuan:* " . $booking['branch_name'] . "\n📅 *Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih! 🙏");
+                    $wa_msg = urlencode("Halo Admin Inka Otoservice 👋\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n✅ *Kode Booking: " . $booking['booking_code'] . "*\n👤 *Nama:* " . $booking['customer_name'] . "\n🚗 *Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n📅 *Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih! 🙏");
                     $wa_number = !empty($booking['branch_whatsapp']) ? $booking['branch_whatsapp'] : "6281234567890"; 
                 ?>
                 
                 <input type="hidden" id="waLink" value="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>">
 
-                <div class="mb-8 space-y-4">
-                    <a href="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>" class="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/30 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                        <span>Kirim Bukti via WhatsApp Sekarang</span>
-                    </a>
-                    <p class="text-[10px] text-slate-400 font-semibold italic">Aplikasi WhatsApp akan terbuka secara otomatis dalam beberapa saat. Jika tidak, silakan klik tombol di atas.</p>
+                <div class="mb-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-center gap-3">
+                    <div class="animate-bounce">
+                        <i data-lucide="message-circle" class="w-5 h-5 text-emerald-600"></i>
+                    </div>
+                    <p class="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-widest">Membuka WhatsApp Admin...</p>
                 </div>
 
-                <a href="booking-online.php" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
-                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Buat Booking Baru
+                <a href="login.php" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Kembali ke Beranda
                 </a>
             </div>
 
@@ -390,8 +417,6 @@ $branches = $stmt_br->fetchAll();
                 }
             });
             
-            // Logika pembatasan kuota jam dihilangkan agar pelanggan bebas memilih jam kapanpun
-            /*
             if (branch_id && date) {
                 fetch(`booking-online.php?action=get_booked_times&date=${date}&branch_id=${branch_id}`)
                     .then(res => res.json())
@@ -419,7 +444,6 @@ $branches = $stmt_br->fetchAll();
                     })
                     .catch(err => console.error('Error fetching timeslots:', err));
             }
-            */
         }
 
         if (branchSelect && dateInput) {
@@ -428,6 +452,55 @@ $branches = $stmt_br->fetchAll();
             // Run once on load just in case values are pre-filled (like form error back)
             updateAvailableTimes();
         }
+
+        // --- FILTER CABANG BERDASARKAN LAYANAN ---
+        const serviceRadios = document.querySelectorAll('input[name="service_type"]');
+        const originalBranchOptions = Array.from(branchSelect.options);
+
+        function filterBranches() {
+            const selectedService = document.querySelector('input[name="service_type"]:checked').value;
+            const currentBranchId = branchSelect.value;
+            
+            // Simpan pilihan sebelumnya
+            const previousValue = branchSelect.value;
+            
+            // Bersihkan dropdown
+            branchSelect.innerHTML = '';
+            
+            originalBranchOptions.forEach(opt => {
+                const branchName = opt.text.toLowerCase();
+                
+                if (selectedService === 'AC') {
+                    // Hanya tampilkan Depok untuk AC
+                    if (opt.value === "" || branchName.includes('depok')) {
+                        branchSelect.appendChild(opt.cloneNode(true));
+                    }
+                } else {
+                    // Tampilkan semua untuk Kaki-kaki
+                    branchSelect.appendChild(opt.cloneNode(true));
+                }
+            });
+
+            // Jika pilihan sebelumnya masih ada di daftar baru, biarkan. Jika tidak, reset.
+            const stillExists = Array.from(branchSelect.options).some(opt => opt.value === previousValue);
+            if (stillExists) {
+                branchSelect.value = previousValue;
+            } else {
+                branchSelect.value = "";
+                // Jika hanya ada 1 pilihan (Depok), otomatis pilih
+                const realOpts = branchSelect.querySelectorAll('option[value]:not([value=""])');
+                if (realOpts.length === 1) {
+                    branchSelect.value = realOpts[0].value;
+                }
+            }
+            
+            // Trigger update jadwal
+            updateAvailableTimes();
+        }
+
+        serviceRadios.forEach(r => r.addEventListener('change', filterBranches));
+        // Jalankan saat load
+        if (serviceRadios.length > 0) filterBranches();
 
         // Auto-redirect to WhatsApp in Step 4
         window.addEventListener('load', function() {
