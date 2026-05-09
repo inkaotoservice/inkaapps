@@ -588,8 +588,11 @@ function renderBoard() {
                         </div>
                         <span class="text-[9px] font-semibold text-slate-500 shrink-0">\${b.service_time.substring(0,5)}</span>
                     </div>
-                    <div class="flex items-center gap-1.5 mb-1.5">
-                        <p class="text-[10px] font-medium text-slate-600 truncate">\${b.customer_name}</p>
+                    <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                        <p class="text-[10px] font-medium text-slate-600 truncate">
+                            \${b.customer_name}
+                            \${b.customer_phone ? `<span class="text-[9px] text-slate-400 font-normal ml-1">\${b.customer_phone}</span>` : ''}
+                        </p>
                         \${b.is_online == 1 && b.is_dp_paid == 1 ? `<span class="text-[7px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-1 py-0.5 rounded border border-emerald-100">DP LUNAS</span>` : ''}
                     </div>
                     \${actions}
@@ -608,8 +611,11 @@ function renderBoard() {
                         <span class="text-[10px] font-semibold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 shrink-0">\${b.service_time.substring(0,5)}</span>
                     </div>
                     
-                    <div class="flex items-center gap-2">
-                        <p class="text-[11px] font-semibold text-slate-600 truncate">\${b.customer_name}</p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="text-[11px] font-semibold text-slate-600 truncate">
+                            \${b.customer_name}
+                            \${b.customer_phone ? `<span class="text-[10px] font-normal text-slate-400 ml-1">\${b.customer_phone}</span>` : ''}
+                        </p>
                         <span class="text-[10px] text-slate-400">•</span>
                         <p class="text-[10px] text-slate-400 truncate italic">\${b.car_model}</p>
                     </div>
