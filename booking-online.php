@@ -16,22 +16,7 @@ $bank_name = $settings['payment_bank_name'] ?? 'Bank BCA';
 $bank_account = $settings['payment_account_number'] ?? '123 456 7890';
 $bank_account_name = $settings['payment_account_name'] ?? 'PT Inka Otoservice';
 
-// AJAX: Get booked times
-if (isset($_GET['action']) && $_GET['action'] === 'get_booked_times') {
-    $date = $_GET['date'] ?? '';
-    $branch_id = $_GET['branch_id'] ?? '';
-    
-    if ($date && $branch_id) {
-        // Ambil jam yang sudah dibooking dan belum dibatalkan
-        $stmt = $pdo->prepare("SELECT service_time FROM bookings WHERE service_date = ? AND branch_id = ? AND status != 'cancelled'");
-        $stmt->execute([$date, $branch_id]);
-        $booked = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        
-        header('Content-Type: application/json');
-        echo json_encode(['booked_times' => $booked]);
-        exit();
-    }
-}
+
 
 // Step 1: Submit Form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
@@ -404,61 +389,7 @@ $branches = $stmt_br->fetchAll();
             });
         }
 
-        // Script to fetch and disable booked timeslots
         const branchSelect = document.querySelector('select[name="branch_id"]');
-        const dateInput = document.querySelector('input[name="service_date"]');
-        const timeSelect = document.querySelector('select[name="service_time"]');
-
-        function updateAvailableTimes() {
-            if (!branchSelect || !dateInput || !timeSelect) return;
-            
-            const branch_id = branchSelect.value;
-            const date = dateInput.value;
-            
-            // Reset all options first
-            Array.from(timeSelect.options).forEach(opt => {
-                if (opt.value !== "") {
-                    opt.disabled = false;
-                    opt.text = opt.value + ' WIB';
-                    opt.classList.remove('text-red-400', 'bg-red-50/50');
-                }
-            });
-            
-            if (branch_id && date) {
-                fetch(`booking-online.php?action=get_booked_times&date=${date}&branch_id=${branch_id}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.booked_times) {
-                            let isCurrentSelectedDisabled = false;
-                            
-                            Array.from(timeSelect.options).forEach(opt => {
-                                // If exact match or starting with the hour (if seconds were included in db)
-                                if (data.booked_times.some(bt => bt.startsWith(opt.value))) {
-                                    opt.disabled = true;
-                                    opt.text = opt.value + ' WIB (Penuh)';
-                                    opt.classList.add('text-red-400', 'bg-red-50/50');
-                                    
-                                    if (timeSelect.value === opt.value) {
-                                        isCurrentSelectedDisabled = true;
-                                    }
-                                }
-                            });
-                            
-                            if (isCurrentSelectedDisabled) {
-                                timeSelect.value = ""; // Reset if the currently selected one just got disabled
-                            }
-                        }
-                    })
-                    .catch(err => console.error('Error fetching timeslots:', err));
-            }
-        }
-
-        if (branchSelect && dateInput) {
-            branchSelect.addEventListener('change', updateAvailableTimes);
-            dateInput.addEventListener('change', updateAvailableTimes);
-            // Run once on load just in case values are pre-filled (like form error back)
-            updateAvailableTimes();
-        }
 
         // --- FILTER CABANG BERDASARKAN LAYANAN ---
         const serviceRadios = document.querySelectorAll('input[name="service_type"]');
@@ -501,8 +432,7 @@ $branches = $stmt_br->fetchAll();
                 }
             }
             
-            // Trigger update jadwal
-            updateAvailableTimes();
+
         }
 
         serviceRadios.forEach(r => r.addEventListener('change', filterBranches));
