@@ -6,8 +6,15 @@ $step = $_GET['step'] ?? 1;
 $booking_id = $_GET['id'] ?? null;
 
 // Fetch settings
-$stmt_dp = $pdo->query("SELECT `value` FROM app_settings WHERE `key` = 'booking_dp'");
-$dp_amount = $stmt_dp->fetchColumn() ?: 50000;
+$stmt_settings = $pdo->query("SELECT `key`, `value` FROM app_settings");
+$settings = [];
+while ($row = $stmt_settings->fetch()) {
+    $settings[$row['key']] = $row['value'];
+}
+$dp_amount = $settings['booking_dp'] ?? 50000;
+$bank_name = $settings['payment_bank_name'] ?? 'Bank BCA';
+$bank_account = $settings['payment_account_number'] ?? '123 456 7890';
+$bank_account_name = $settings['payment_account_name'] ?? 'PT Inka Otoservice';
 
 // AJAX: Get booked times
 if (isset($_GET['action']) && $_GET['action'] === 'get_booked_times') {
@@ -287,11 +294,11 @@ $branches = $stmt_br->fetchAll();
                     <p class="text-[10px] font-semibold text-slate-400 mb-4 italic">Silahkan lakukan pembayaran booking, klik tombol copy rekening, terimakasih</p>
                     <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
                         <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank BCA</p>
-                            <p class="font-bold text-slate-800 text-lg sm:text-xl">123 456 7890</p>
-                            <p class="text-xs sm:text-sm text-slate-500 font-medium">a.n. PT Inka Otoservice</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest"><?php echo htmlspecialchars($bank_name); ?></p>
+                            <p class="font-bold text-slate-800 text-lg sm:text-xl"><?php echo htmlspecialchars($bank_account); ?></p>
+                            <p class="text-xs sm:text-sm text-slate-500 font-medium">a.n. <?php echo htmlspecialchars($bank_account_name); ?></p>
                         </div>
-                        <button onclick="copyToClipboard('1234567890')" class="w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center border border-blue-100 transition-all active:scale-90 group">
+                        <button onclick="copyToClipboard('<?php echo htmlspecialchars($bank_account); ?>')" class="w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center border border-blue-100 transition-all active:scale-90 group">
                             <i data-lucide="copy" class="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform"></i>
                         </button>
                     </div>
