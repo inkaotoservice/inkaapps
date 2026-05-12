@@ -387,8 +387,8 @@ $branches = $stmt_br->fetchAll();
                     Jika WhatsApp tidak terbuka otomatis, klik tombol di atas.
                 </p>
 
-                <a href="login.php" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
-                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Kembali ke Beranda
+                <a href="booking-online.php?step=1" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Kembali ke Form Booking
                 </a>
             </div>
 
