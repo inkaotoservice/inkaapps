@@ -359,12 +359,18 @@ $branches = $stmt_br->fetchAll();
                 
                 <input type="hidden" id="waLink" value="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>">
 
-                <div class="mb-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-center gap-3">
-                    <div class="animate-bounce">
-                        <i data-lucide="message-circle" class="w-5 h-5 text-emerald-600"></i>
-                    </div>
-                    <p class="text-[10px] sm:text-xs font-bold text-emerald-700 uppercase tracking-widest">Membuka WhatsApp Admin...</p>
-                </div>
+                <!-- Tombol Buka WhatsApp (utama) -->
+                <a id="btnOpenWA" href="#"
+                    class="w-full inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/30 transition-all active:scale-95 mb-4"
+                    onclick="openWA(event)">
+                    <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+                    <span id="btnWALabel">Membuka WhatsApp Admin...</span>
+                </a>
+
+                <!-- Status auto-open -->
+                <p id="waStatusMsg" class="text-[10px] sm:text-xs text-slate-400 font-semibold mb-6 hidden">
+                    Jika WhatsApp tidak terbuka otomatis, klik tombol di atas.
+                </p>
 
                 <a href="login.php" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
                     <i data-lucide="arrow-left" class="w-3 h-3"></i> Kembali ke Beranda
@@ -439,13 +445,35 @@ $branches = $stmt_br->fetchAll();
         // Jalankan saat load
         if (serviceRadios.length > 0) filterBranches();
 
-        // Auto-redirect to WhatsApp in Step 4
+        // Fungsi buka WhatsApp — dipakai oleh tombol DAN auto-open
+        function openWA(e) {
+            if (e) e.preventDefault();
+            const waLink = document.getElementById('waLink');
+            if (!waLink) return;
+            // Buka di tab/app baru, BUKAN redirect halaman ini
+            window.open(waLink.value, '_blank', 'noopener,noreferrer');
+            // Update label tombol jadi lebih jelas
+            document.getElementById('btnWALabel').textContent = 'Buka WhatsApp Admin';
+        }
+
+        // Auto-open WhatsApp di Step 4 setelah 1.5 detik
         window.addEventListener('load', function() {
             const waLink = document.getElementById('waLink');
             if (waLink && window.location.search.includes('step=4')) {
+                // Update href tombol agar bisa diklik langsung juga
+                document.getElementById('btnOpenWA').href = waLink.value;
+                document.getElementById('btnOpenWA').setAttribute('target', '_blank');
+                document.getElementById('btnOpenWA').setAttribute('rel', 'noopener noreferrer');
+
                 setTimeout(() => {
-                    window.location.href = waLink.value;
-                }, 1500); // Tunggu 1.5 detik agar user sempat melihat pesan sukses
+                    // Coba auto-open; jika browser blokir popup, tombol masih bisa diklik
+                    const newTab = window.open(waLink.value, '_blank', 'noopener,noreferrer');
+                    if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+                        // Popup diblokir browser — tampilkan hint
+                        document.getElementById('waStatusMsg').classList.remove('hidden');
+                    }
+                    document.getElementById('btnWALabel').textContent = 'Buka WhatsApp Admin';
+                }, 1500);
             }
         });
 
