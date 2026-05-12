@@ -356,19 +356,16 @@ $branches = $stmt_br->fetchAll();
                     $branch_name = $booking['branch_name'] ?? 'Cabang';
                     $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n*Kode Booking: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih!");
                     
-                    // Prioritas: nomor WA dari database, fallback berdasarkan nama cabang
-                    if (!empty($booking['branch_whatsapp'])) {
-                        $wa_number = $booking['branch_whatsapp'];
+                    // Logic Anti-Salah: Prioritaskan deteksi nama cabang
+                    $branch_name_lower = strtolower($branch_name);
+                    
+                    if (strpos($branch_name_lower, 'bsd') !== false) {
+                        $wa_number = '6281398563653'; // PAKSA nomor BSD
+                    } elseif (strpos($branch_name_lower, 'depok') !== false) {
+                        $wa_number = '6289678290743'; // PAKSA nomor Depok
                     } else {
-                        // Fallback: mapping nomor WA per cabang
-                        $branch_name_lower = strtolower($branch_name);
-                        if (strpos($branch_name_lower, 'bsd') !== false) {
-                            $wa_number = '6281398563653'; // WA Admin BSD
-                        } elseif (strpos($branch_name_lower, 'depok') !== false) {
-                            $wa_number = '6289678290743'; // WA Admin Depok
-                        } else {
-                            $wa_number = '6289678290743'; // Default ke Depok
-                        }
+                        // Jika tidak terdeteksi dari nama, baru ambil dari database atau default
+                        $wa_number = !empty($booking['branch_whatsapp']) ? $booking['branch_whatsapp'] : '6289678290743';
                     }
                 ?>
                 
