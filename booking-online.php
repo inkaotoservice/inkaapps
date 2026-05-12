@@ -354,7 +354,7 @@ $branches = $stmt_br->fetchAll();
 
                 <?php 
                     $branch_name = $booking['branch_name'] ?? 'Cabang';
-                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name}) 👋\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n✅ *Kode Booking: " . $booking['booking_code'] . "*\n👤 *Nama:* " . $booking['customer_name'] . "\n🚗 *Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n🏢 *Cabang:* " . $branch_name . "\n📅 *Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih! 🙏");
+                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n*Kode Booking: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih!");
                     
                     // Prioritas: nomor WA dari database, fallback berdasarkan nama cabang
                     if (!empty($booking['branch_whatsapp'])) {
