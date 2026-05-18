@@ -581,13 +581,15 @@ function renderBoard() {
             // Compact Mode
             columns[b.status].html += `
                 <div class="bg-white px-2.5 py-2 rounded-xl border border-slate-200 border-l-[3px] \${borderColor} hover:shadow-md hover:border-slate-300 transition-all duration-200">
-                    <div class="flex justify-between items-start mb-1.5">
-                        <div class="flex items-center gap-1.5 min-w-0 flex-1">
-                            <h4 class="text-xs font-bold text-slate-900 tracking-wide">\${b.license_plate}</h4>
-                            \${b.booking_code ? `<span class="text-[9px] font-bold text-slate-500 tracking-wider">#\${b.booking_code}</span>` : ''}
-                            <span class="text-[7px] font-black text-white uppercase tracking-widest \${b.is_online == 1 ? 'bg-indigo-500' : 'bg-slate-400'} px-1.5 py-0.5 rounded-full">\${b.booking_type}</span>
+                    <div class="flex justify-between items-start mb-1.5 gap-2">
+                        <div class="flex flex-col min-w-0">
+                            <h4 class="text-xs font-bold text-slate-900 tracking-wide truncate">\${b.license_plate}</h4>
+                            \${b.booking_code ? `<span class="text-[8px] font-medium text-slate-400 font-mono tracking-wide truncate mt-0.5">#\${b.booking_code}</span>` : ''}
                         </div>
-                        <span class="text-[9px] font-semibold text-slate-500 shrink-0">\${b.service_time.substring(0,5)}</span>
+                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end max-w-[50%]">
+                            <span class="text-[7px] font-black text-white uppercase tracking-widest \${b.is_online == 1 ? 'bg-indigo-500' : 'bg-slate-400'} px-1.5 py-0.5 rounded-full">\${b.booking_type}</span>
+                            <span class="text-[9px] font-semibold text-slate-500">\${b.service_time.substring(0,5)}</span>
+                        </div>
                     </div>
                     <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
                         <p class="text-[10px] font-medium text-slate-600 truncate">
@@ -603,14 +605,16 @@ function renderBoard() {
             // Normal Mode
             columns[b.status].html += `
                 <div class="bg-white px-3.5 py-3 rounded-xl border border-slate-200 border-l-[3px] \${borderColor} hover:shadow-md hover:border-slate-300 transition-all duration-200">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex items-center gap-2 min-w-0 flex-1">
-                            <h4 class="text-sm font-bold text-slate-900 tracking-wide">\${b.license_plate}</h4>
-                            \${b.booking_code ? `<span class="text-[10px] font-bold text-slate-500 tracking-wider">#\${b.booking_code}</span>` : ''}
+                    <div class="flex justify-between items-start mb-2 gap-2">
+                        <div class="flex flex-col min-w-0">
+                            <h4 class="text-sm font-bold text-slate-900 tracking-wide truncate">\${b.license_plate}</h4>
+                            \${b.booking_code ? `<span class="text-[9px] font-medium text-slate-400 font-mono tracking-wide truncate mt-0.5">#\${b.booking_code}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 flex-wrap justify-end max-w-[65%]">
                             <span class="text-[8px] font-black text-white uppercase tracking-widest \${b.is_online == 1 ? 'bg-indigo-500' : 'bg-slate-400'} px-2 py-0.5 rounded-full">\${b.booking_type}</span>
                             \${b.is_online == 1 && b.is_dp_paid == 1 ? `<span class="text-[8px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">DP LUNAS</span>` : ''}
+                            <span class="text-[10px] font-semibold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">\${b.service_time.substring(0,5)}</span>
                         </div>
-                        <span class="text-[10px] font-semibold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 shrink-0">\${b.service_time.substring(0,5)}</span>
                     </div>
                     
                     <div class="flex items-center gap-2 flex-wrap">
