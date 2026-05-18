@@ -376,7 +376,7 @@ $branches = $stmt_br->fetchAll();
                     class="w-full inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/30 transition-all active:scale-95 mb-4"
                     onclick="openWA(event)">
                     <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                    <span id="btnWALabel">Membuka WhatsApp Admin...</span>
+                    <span id="btnWALabel">Klik Buka WhatsApp</span>
                 </a>
 
                 <!-- Status auto-open -->
@@ -465,7 +465,7 @@ $branches = $stmt_br->fetchAll();
             // Buka di tab/app baru, BUKAN redirect halaman ini
             window.open(waLink.value, '_blank', 'noopener,noreferrer');
             // Update label tombol jadi lebih jelas
-            document.getElementById('btnWALabel').textContent = 'Buka WhatsApp Admin';
+            document.getElementById('btnWALabel').textContent = 'Klik Buka WhatsApp';
         }
 
         // Auto-open WhatsApp di Step 4 setelah 1.5 detik
@@ -484,7 +484,7 @@ $branches = $stmt_br->fetchAll();
                         // Popup diblokir browser — tampilkan hint
                         document.getElementById('waStatusMsg').classList.remove('hidden');
                     }
-                    document.getElementById('btnWALabel').textContent = 'Buka WhatsApp Admin';
+                    document.getElementById('btnWALabel').textContent = 'Klik Buka WhatsApp';
                 }, 1500);
             }
         });
