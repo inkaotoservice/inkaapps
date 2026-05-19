@@ -49,22 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
     exit();
 }
 
-// Step 2: Confirm payment info seen
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['proceed_to_upload'])) {
-    header("Location: booking-online.php?step=3&id=" . urlencode($booking_id));
-    exit();
-}
-
+// Step 2 (and 3, 4) handling logic removed as it's now integrated into a single warning page
 $error = '';
-
-// Step 3: Proceed to final step (No file upload to system)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_dp'])) {
-    // Update booking status to pending
-    $stmt = $pdo->prepare("UPDATE bookings SET status = 'pending' WHERE id = ?");
-    $stmt->execute([$booking_id]);
-    header("Location: booking-online.php?step=4&id=" . urlencode($booking_id));
-    exit();
-}
 
 // Fetch booking data for step 2 & 3
 $booking = null;
@@ -247,7 +233,7 @@ $branches = $stmt_br->fetchAll();
                     <div class="pt-6 sm:pt-8">
                         <button type="submit" name="submit_booking"
                             class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-blue-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <span>Lanjut ke Pembayaran DP</span>
+                            <span>Simpan & Lanjut Konfirmasi</span>
                             <i data-lucide="arrow-right" class="w-4 h-4 shrink-0"></i>
                         </button>
                     </div>
@@ -255,140 +241,68 @@ $branches = $stmt_br->fetchAll();
             </div>
 
             <?php elseif ($step == 2 && $booking): ?>
-            <!-- STEP 2: INFO PEMBAYARAN -->
+            <!-- STEP 2: WARNING & INFO PEMBAYARAN -->
             <div class="p-6 sm:p-8 text-center">
-                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200 text-left">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">2</div>
-                    <h2 class="font-bold text-base sm:text-lg text-slate-800 uppercase tracking-wide">Informasi Pembayaran</h2>
+                <!-- Ikon Peringatan -->
+                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="alert-triangle" class="w-10 h-10 text-red-600"></i>
                 </div>
+                
+                <h2 class="text-2xl sm:text-3xl font-black text-red-600 uppercase tracking-tight mb-2">Belum Selesai!</h2>
+                <p class="text-slate-600 font-medium mb-6 text-sm px-2">Data Anda sudah tersimpan, namun **Kode Booking belum aktif**. Silakan lakukan pembayaran DP dan **wajib** kirim foto bukti transfer ke WhatsApp kami.</p>
 
-                <div class="bg-blue-50 border border-blue-100 rounded-2xl p-5 sm:p-6 text-center mb-6 sm:mb-8">
-                    <p class="text-xs sm:text-sm font-semibold text-blue-600 mb-1">Jadwal Servis Anda:</p>
-                    <p class="text-lg sm:text-xl font-bold text-slate-800"><?php echo date('d M Y', strtotime($booking['service_date'])); ?> - <?php echo $booking['service_time']; ?></p>
-                </div>
-
-                <div class="text-center mb-6 sm:mb-8">
-                    <p class="text-xs sm:text-sm font-semibold text-slate-500 mb-1">Total DP yang harus ditransfer:</p>
-                    <p class="text-3xl sm:text-4xl font-black text-slate-900"><?php echo rupiah($dp_amount); ?></p>
-                </div>
-
+                <!-- Info Pembayaran -->
                 <div class="bg-slate-50 rounded-2xl p-5 sm:p-6 mb-8 border border-slate-200 text-left">
-                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 uppercase tracking-widest mb-1 flex items-center gap-2">
-                        <i data-lucide="building-2" class="w-4 h-4 text-slate-400"></i> Rekening Pembayaran
-                    </h3>
-                    <p class="text-[10px] font-semibold text-slate-400 mb-4 italic">Silahkan lakukan pembayaran booking, klik tombol copy rekening, terimakasih</p>
+                    <div class="flex items-center gap-2 mb-4 pb-4 border-b border-slate-200">
+                        <i data-lucide="credit-card" class="w-5 h-5 text-slate-400"></i>
+                        <h3 class="font-bold text-sm text-slate-800 uppercase tracking-widest">Nominal & Rekening</h3>
+                    </div>
+                    
+                    <div class="mb-5 text-center">
+                        <p class="text-xs font-semibold text-slate-500 mb-1">Total DP yang harus ditransfer:</p>
+                        <p class="text-3xl font-black text-slate-900"><?php echo rupiah($dp_amount); ?></p>
+                    </div>
+
                     <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
-                        <div>
+                        <div class="max-w-[70%]">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest"><?php echo htmlspecialchars($bank_name); ?></p>
-                            <p class="font-bold text-slate-800 text-lg sm:text-xl"><?php echo htmlspecialchars($bank_account); ?></p>
-                            <p class="text-xs sm:text-sm text-slate-500 font-medium">a.n. <?php echo htmlspecialchars($bank_account_name); ?></p>
+                            <p class="font-bold text-slate-800 text-lg sm:text-xl break-words"><?php echo htmlspecialchars($bank_account); ?></p>
+                            <p class="text-xs text-slate-500 font-medium">a.n. <?php echo htmlspecialchars($bank_account_name); ?></p>
                         </div>
-                        <button onclick="copyToClipboard('<?php echo htmlspecialchars($bank_account); ?>')" class="w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center border border-blue-100 transition-all active:scale-90 group">
+                        <button onclick="copyToClipboard('<?php echo htmlspecialchars($bank_account); ?>')" class="w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded-lg flex items-center justify-center border border-blue-100 transition-all active:scale-90 group shrink-0">
                             <i data-lucide="copy" class="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform"></i>
                         </button>
                     </div>
                 </div>
 
-                <form method="POST" action="booking-online.php?step=2&id=<?php echo $booking_id; ?>">
-                    <button type="submit" name="proceed_to_upload"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-blue-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <span>Saya Sudah Transfer Lanjut</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4 shrink-0"></i>
-                    </button>
-                </form>
-            </div>
-
-            <?php elseif ($step == 3 && $booking): ?>
-            <!-- STEP 3: UPLOAD BUKTI -->
-            <div class="p-6 sm:p-8">
-                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">3</div>
-                    <h2 class="font-bold text-base sm:text-lg text-slate-800 uppercase tracking-wide">Upload Bukti & Konfirmasi</h2>
-                </div>
-
-                <?php if ($error): ?>
-                <div class="bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl flex items-center gap-3 text-sm font-semibold mb-6">
-                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                    <?php echo $error; ?>
-                </div>
-                <?php endif; ?>
-
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="camera" class="w-8 h-8 text-emerald-600"></i>
-                    </div>
-                    <p class="text-sm font-semibold text-slate-700 mb-2">PENTING:</p>
-                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                        Silakan **Screenshot** atau **Foto** bukti transfer Anda.<br>
-                        Nanti Anda wajib melampirkan foto tersebut di chat WhatsApp Admin.
-                    </p>
-                </div>
-
-                <form method="POST" action="booking-online.php?step=3&id=<?php echo $booking_id; ?>" class="space-y-6">
-                    <div class="pt-2">
-                        <button type="submit" name="submit_dp"
-                            class="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-4 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/30 transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                            <span class="truncate">Konfirmasi ke WhatsApp Admin</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <?php elseif ($step == 4 && $booking): ?>
-            <!-- STEP 4: SUKSES & KONFIRMASI WA -->
-            <div class="p-8 sm:p-10 text-center">
-                <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-600"></i>
-                </div>
-                <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Hampir Selesai!</h2>
-                <p class="text-slate-500 font-medium mb-8 text-sm px-4">Pendaftaran sudah masuk ke sistem. **Jangan lupa lampirkan foto bukti transfer** Anda di chat WhatsApp yang baru saja terbuka.</p>
-                
-                <div class="bg-slate-50 rounded-2xl p-5 sm:p-6 border border-slate-200 mb-6 sm:mb-8 inline-block text-left w-full max-w-sm">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kode Booking</p>
-                    <p class="text-lg sm:text-xl font-black text-slate-900 font-mono mb-4"><?php echo $booking['booking_code']; ?></p>
-                    
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Jadwal Servis</p>
-                    <p class="font-bold text-sm sm:text-base text-slate-800"><?php echo date('d M Y', strtotime($booking['service_date'])); ?> - <?php echo $booking['service_time']; ?></p>
-                </div>
-
+                <!-- Siapkan Link WA -->
                 <?php 
                     $branch_name = $booking['branch_name'] ?? 'Cabang';
-                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pendaftaran *Booking Online* yang baru saja saya lakukan.\n\nBerikut detail data saya:\n*Kode Booking: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya di bawah ini)*\n\nMohon bantuannya untuk segera dikonfirmasi agar masuk ke sistem antrian. Terima kasih!");
+                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pembayaran DP untuk pendaftaran *Booking Online*.\n\nBerikut data saya:\n*Sistem ID: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya)*\n\nMohon konfirmasi agar saya mendapatkan Kode Booking. Terima kasih!");
                     
                     // Logic Anti-Salah: Prioritaskan deteksi nama cabang
                     $branch_name_lower = strtolower($branch_name);
-                    
                     if (strpos($branch_name_lower, 'bsd') !== false) {
-                        $wa_number = '6281398563653'; // PAKSA nomor BSD
+                        $wa_number = '6281398563653';
                     } elseif (strpos($branch_name_lower, 'depok') !== false) {
-                        $wa_number = '6289678290743'; // PAKSA nomor Depok
+                        $wa_number = '6289678290743';
                     } else {
-                        // Jika tidak terdeteksi dari nama, baru ambil dari database atau default
                         $wa_number = !empty($booking['branch_whatsapp']) ? $booking['branch_whatsapp'] : '6289678290743';
                     }
                 ?>
-                
                 <input type="hidden" id="waLink" value="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>">
 
-                <!-- Tombol Buka WhatsApp (utama) -->
+                <!-- Tombol Buka WhatsApp Beranimasi Pulse -->
                 <a id="btnOpenWA" href="#"
-                    class="w-full inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/30 transition-all active:scale-95 mb-4"
+                    class="w-full inline-flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/40 transition-all active:scale-95 mb-6 animate-pulse"
                     onclick="openWA(event)">
-                    <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                    <span id="btnWALabel">Klik Buka WhatsApp</span>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="camera" class="w-5 h-5 shrink-0"></i>
+                        <span id="btnWALabel">KLIK & KIRIM BUKTI KE WA</span>
+                    </div>
                 </a>
 
-                <!-- Status auto-open -->
-                <p id="waStatusMsg" class="text-[10px] sm:text-xs text-slate-400 font-semibold mb-6 hidden">
-                    Jika WhatsApp tidak terbuka otomatis, klik tombol di atas.
-                </p>
-
-                <a href="booking-online.php?step=1" class="text-slate-400 hover:text-slate-600 font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-colors inline-flex items-center gap-1">
-                    <i data-lucide="arrow-left" class="w-3 h-3"></i> Kembali ke Form Booking
-                </a>
             </div>
-
             <?php endif; ?>
 
         </div>
@@ -457,37 +371,27 @@ $branches = $stmt_br->fetchAll();
         // Jalankan saat load
         if (serviceRadios.length > 0) filterBranches();
 
-        // Fungsi buka WhatsApp — dipakai oleh tombol DAN auto-open
-        function openWA(e) {
-            if (e) e.preventDefault();
-            const waLink = document.getElementById('waLink');
-            if (!waLink) return;
-            // Buka di tab/app baru, BUKAN redirect halaman ini
-            window.open(waLink.value, '_blank', 'noopener,noreferrer');
-            // Update label tombol jadi lebih jelas
-            document.getElementById('btnWALabel').textContent = 'Klik Buka WhatsApp';
-        }
-
-        // Auto-open WhatsApp di Step 4 setelah 1.5 detik
+        // Setup tombol WA
         window.addEventListener('load', function() {
             const waLink = document.getElementById('waLink');
-            if (waLink && window.location.search.includes('step=4')) {
-                // Update href tombol agar bisa diklik langsung juga
-                document.getElementById('btnOpenWA').href = waLink.value;
-                document.getElementById('btnOpenWA').setAttribute('target', '_blank');
-                document.getElementById('btnOpenWA').setAttribute('rel', 'noopener noreferrer');
-
-                setTimeout(() => {
-                    // Coba auto-open; jika browser blokir popup, tombol masih bisa diklik
-                    const newTab = window.open(waLink.value, '_blank', 'noopener,noreferrer');
-                    if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
-                        // Popup diblokir browser — tampilkan hint
-                        document.getElementById('waStatusMsg').classList.remove('hidden');
-                    }
-                    document.getElementById('btnWALabel').textContent = 'Klik Buka WhatsApp';
-                }, 1500);
+            const btnOpenWA = document.getElementById('btnOpenWA');
+            if (waLink && btnOpenWA) {
+                // Set href langsung agar bisa diclick via native browser behavior
+                btnOpenWA.href = waLink.value;
+                btnOpenWA.setAttribute('target', '_blank');
+                btnOpenWA.setAttribute('rel', 'noopener noreferrer');
             }
         });
+
+        // Fungsi klik WhatsApp (tambahan behavior)
+        function openWA(e) {
+            // Karena href sudah diset, tidak wajib open manual, tapi kita pastikan window.open jalan
+            // Dan hilangkan efek pulse saat sudah di klik
+            const btn = document.getElementById('btnOpenWA');
+            if(btn) {
+                btn.classList.remove('animate-pulse');
+            }
+        }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
