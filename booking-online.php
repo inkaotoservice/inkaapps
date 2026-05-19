@@ -290,12 +290,11 @@ $branches = $stmt_br->fetchAll();
                         $wa_number = !empty($booking['branch_whatsapp']) ? $booking['branch_whatsapp'] : '6289678290743';
                     }
                 ?>
-                <input type="hidden" id="waLink" value="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>">
-
                 <!-- Tombol Buka WhatsApp Beranimasi Pulse -->
-                <a id="btnOpenWA" href="#"
+                <a id="btnOpenWA" href="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>"
+                    target="_blank" rel="noopener noreferrer"
                     class="w-full inline-flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/40 transition-all active:scale-95 mb-6 animate-pulse"
-                    onclick="openWA(event)">
+                    onclick="this.classList.remove('animate-pulse');">
                     <div class="flex items-center gap-2">
                         <i data-lucide="camera" class="w-5 h-5 shrink-0"></i>
                         <span id="btnWALabel">KLIK & KIRIM BUKTI KE WA</span>
@@ -371,27 +370,7 @@ $branches = $stmt_br->fetchAll();
         // Jalankan saat load
         if (serviceRadios.length > 0) filterBranches();
 
-        // Setup tombol WA
-        window.addEventListener('load', function() {
-            const waLink = document.getElementById('waLink');
-            const btnOpenWA = document.getElementById('btnOpenWA');
-            if (waLink && btnOpenWA) {
-                // Set href langsung agar bisa diclick via native browser behavior
-                btnOpenWA.href = waLink.value;
-                btnOpenWA.setAttribute('target', '_blank');
-                btnOpenWA.setAttribute('rel', 'noopener noreferrer');
-            }
-        });
 
-        // Fungsi klik WhatsApp (tambahan behavior)
-        function openWA(e) {
-            // Karena href sudah diset, tidak wajib open manual, tapi kita pastikan window.open jalan
-            // Dan hilangkan efek pulse saat sudah di klik
-            const btn = document.getElementById('btnOpenWA');
-            if(btn) {
-                btn.classList.remove('animate-pulse');
-            }
-        }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
