@@ -278,7 +278,7 @@ $branches = $stmt_br->fetchAll();
                 <!-- Siapkan Link WA -->
                 <?php 
                     $branch_name = $booking['branch_name'] ?? 'Cabang';
-                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pembayaran DP untuk pendaftaran *Booking Online*.\n\nBerikut data saya:\n*Sistem ID: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n*(Terlampir foto bukti transfer DP saya)*\n\nMohon konfirmasi agar saya mendapatkan Kode Booking. Terima kasih!");
+                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pembayaran DP untuk pendaftaran *Booking Online*.\n\nBerikut data saya:\n*Sistem ID: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n[ ⚠️ JANGAN LUPA: Lampirkan foto/screenshot bukti transfer DP Anda sebelum menekan tombol kirim pesan ini ]\n\nMohon konfirmasi agar saya mendapatkan Kode Booking. Terima kasih!");
                     
                     // Logic Anti-Salah: Prioritaskan deteksi nama cabang
                     $branch_name_lower = strtolower($branch_name);
