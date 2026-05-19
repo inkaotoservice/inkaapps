@@ -16,7 +16,12 @@ $bank_name = $settings['payment_bank_name'] ?? 'Bank BCA';
 $bank_account = $settings['payment_account_number'] ?? '123 456 7890';
 $bank_account_name = $settings['payment_account_name'] ?? 'PT Inka Otoservice';
 
-
+// --- AJAX Handler: Ubah status jadi pending saat klik WA ---
+if (isset($_GET['action']) && $_GET['action'] == 'mark_pending' && isset($_GET['id'])) {
+    $stmt = $pdo->prepare("UPDATE bookings SET status = 'pending' WHERE id = ?");
+    $stmt->execute([$_GET['id']]);
+    exit();
+}
 
 // Step 1: Submit Form
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_booking'])) {
@@ -294,7 +299,7 @@ $branches = $stmt_br->fetchAll();
                 <a id="btnOpenWA" href="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>"
                     target="_blank" rel="noopener noreferrer"
                     class="w-full inline-flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/40 transition-all active:scale-95 mb-6 animate-pulse"
-                    onclick="this.classList.remove('animate-pulse');">
+                    onclick="this.classList.remove('animate-pulse'); fetch('booking-online.php?action=mark_pending&id=<?php echo urlencode($booking_id); ?>');">
                     <div class="flex items-center gap-2">
                         <i data-lucide="camera" class="w-5 h-5 shrink-0"></i>
                         <span id="btnWALabel">KLIK & KIRIM BUKTI KE WA</span>
