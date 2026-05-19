@@ -59,6 +59,24 @@ if (isset($_GET['ajax_get'])) {
     exit;
 }
 
+// ── PROSES AJAX CONFIRM DP (hanya tandai DP lunas, status tetap pending) ──
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'confirm_dp') {
+    $booking_id = $_POST['booking_id'];
+    header('Content-Type: application/json');
+    try {
+        $stmt_dp_cfg = $pdo->query("SELECT `value` FROM app_settings WHERE `key` = 'booking_dp'");
+        $dp_amount = $stmt_dp_cfg->fetchColumn() ?: 50000;
+
+        $stmt = $pdo->prepare("UPDATE bookings SET is_dp_paid = 1, dp_amount = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->execute([$dp_amount, $booking_id]);
+
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    }
+    exit;
+}
+
 // ── PROSES AJAX UPDATE STATUS ────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $booking_id = $_POST['booking_id'];
@@ -68,20 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $pdo->beginTransaction();
 
         if ($new_status === 'processing') {
-            // Check if it's an online booking that needs DP confirmation or draft creation
+            // Buat Draft Transaction jika belum ada
             $stmt_b = $pdo->prepare("SELECT * FROM bookings WHERE id = ?");
             $stmt_b->execute([$booking_id]);
             $booking = $stmt_b->fetch();
 
-            // 1. Mark DP as paid if it's online and not yet paid
-            if ($booking['is_online'] && !$booking['is_dp_paid']) {
-                $stmt_dp = $pdo->query("SELECT `value` FROM app_settings WHERE `key` = 'booking_dp'");
-                $dp_amount = $stmt_dp->fetchColumn() ?: 50000;
-                $stmt_upd = $pdo->prepare("UPDATE bookings SET is_dp_paid = 1, dp_amount = ? WHERE id = ?");
-                $stmt_upd->execute([$dp_amount, $booking_id]);
-            }
-
-            // 2. Create Draft Transaction if not exists
             $stmt_check = $pdo->prepare("SELECT id FROM transactions WHERE booking_id = ?");
             $stmt_check->execute([$booking_id]);
             if (!$stmt_check->fetch()) {
@@ -469,6 +478,37 @@ function closeConfirm(result) {
     }, 200);
 }
 
+async function confirmDP(id) {
+    const res = await showConfirm(
+        'Konfirmasi DP',
+        'Konfirmasi bahwa DP telah diterima? Status akan diubah menjadi DP Lunas. Kerjakan masih bisa dimulai nanti.',
+        'Ya, Konfirmasi DP',
+        'bg-emerald-600',
+        false
+    );
+    if (res && res.confirmed) {
+        const fd = new FormData();
+        fd.append('action', 'confirm_dp');
+        fd.append('booking_id', id);
+
+        fetch('antrian.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(result => {
+            if (result.success) {
+                const booking = bookings.find(b => b.id === id);
+                if (booking) {
+                    booking.is_dp_paid = 1;
+                    renderBoard();
+                }
+                showToast('success', 'DP Dikonfirmasi', 'Status DP telah diubah menjadi Lunas. Klik Mulai Kerjakan saat siap.');
+            } else {
+                showToast('error', 'Gagal', result.error || 'Gagal mengkonfirmasi DP.');
+            }
+        })
+        .catch(() => showToast('error', 'Sistem Error', 'Gagal menghubungi server.'));
+    }
+}
+
 async function handleCancel(id, isRefund = false) {
     const title = isRefund ? 'Refund DP' : 'Batalkan Antrian';
     const msg = isRefund ? 'Harap masukkan alasan refund. Pengembalian dana akan diteruskan ke Finance.' : 'Masukkan alasan mengapa antrian ini dibatalkan:';
@@ -513,8 +553,8 @@ function renderBoard() {
             if (isOnline) {
                 if (!isPaid) {
                     actions = `
-                        <button onclick="updateStatus('\${b.id}', 'processing')" class="w-full mt-2.5 py-2.5 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20">
-                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Konfirmasi DP & Proses
+                        <button onclick="confirmDP('\${b.id}')" class="w-full mt-2.5 py-2.5 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Konfirmasi DP
                         </button>
                         <button onclick="handleCancel('\${b.id}', false)" class="w-full mt-1.5 py-1.5 text-red-500 hover:bg-red-50 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all">
                             Batalkan
@@ -522,7 +562,7 @@ function renderBoard() {
                     `;
                 } else {
                     actions = `
-                        <button onclick="updateStatus('\${b.id}', 'processing')" class="w-full mt-2.5 py-2 bg-blue-600 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-blue-700 transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                        <button onclick="updateStatus('${b.id}', 'processing')" class="w-full mt-2.5 py-2 bg-blue-600 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-blue-700 transition-all flex items-center justify-center gap-1.5 shadow-sm">
                             Mulai Kerjakan <i data-lucide="play" class="w-3 h-3 fill-current"></i>
                         </button>
                         <div class="flex gap-1.5 mt-1.5">
