@@ -247,16 +247,18 @@ $branches = $stmt_br->fetchAll();
 
             <?php elseif ($step == 2 && $booking): ?>
             <!-- STEP 2: WARNING & INFO PEMBAYARAN -->
-            <div class="p-6 sm:p-8 text-center">
-                <!-- Ikon Peringatan -->
-                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i data-lucide="alert-triangle" class="w-10 h-10 text-red-600"></i>
+            <div id="step2Container" class="p-6 sm:p-8 text-center">
+                <!-- Ikon Status -->
+                <div id="statusIconBg" class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 transition-all duration-500">
+                    <i id="iconAlert" data-lucide="alert-triangle" class="w-10 h-10 text-red-600"></i>
+                    <i id="iconWait" data-lucide="hourglass" class="w-10 h-10 text-blue-600 hidden"></i>
                 </div>
                 
-                <h2 class="text-2xl sm:text-3xl font-black text-red-600 uppercase tracking-tight mb-2">Belum Selesai!</h2>
-                <p class="text-slate-600 font-medium mb-6 text-sm px-2">Data Anda sudah tersimpan, namun **Kode Booking belum aktif**. Silakan lakukan pembayaran DP dan **wajib** kirim foto bukti transfer ke WhatsApp kami.</p>
+                <h2 id="statusTitle" class="text-2xl sm:text-3xl font-black text-red-600 uppercase tracking-tight mb-2 transition-all duration-500">Belum Selesai!</h2>
+                <p id="statusDesc" class="text-slate-600 font-medium mb-6 text-sm px-2 transition-all duration-500">Data Anda sudah tersimpan, namun **Kode Booking belum aktif**. Silakan lakukan pembayaran DP dan **wajib** kirim foto bukti transfer ke WhatsApp kami.</p>
 
-                <!-- Info Pembayaran -->
+                <div id="actionWrapper" class="transition-all duration-500 opacity-100">
+                    <!-- Info Pembayaran -->
                 <div class="bg-slate-50 rounded-2xl p-5 sm:p-6 mb-8 border border-slate-200 text-left">
                     <div class="flex items-center gap-2 mb-4 pb-4 border-b border-slate-200">
                         <i data-lucide="credit-card" class="w-5 h-5 text-slate-400"></i>
@@ -299,13 +301,14 @@ $branches = $stmt_br->fetchAll();
                 <a id="btnOpenWA" href="https://wa.me/<?php echo $wa_number; ?>?text=<?php echo $wa_msg; ?>"
                     target="_blank" rel="noopener noreferrer"
                     class="w-full inline-flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20bd5a] hover:to-[#075E54] text-white py-4 px-6 rounded-xl font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl shadow-[#25D366]/40 transition-all active:scale-95 mb-6 animate-pulse"
-                    onclick="this.classList.remove('animate-pulse'); fetch('booking-online.php?action=mark_pending&id=<?php echo urlencode($booking_id); ?>');">
+                    onclick="handleWAClick(this, '<?php echo urlencode($booking_id); ?>');">
                     <div class="flex items-center gap-2">
                         <i data-lucide="camera" class="w-5 h-5 shrink-0"></i>
                         <span id="btnWALabel">KLIK & KIRIM BUKTI KE WA</span>
                     </div>
                 </a>
 
+                </div> <!-- End actionWrapper -->
             </div>
             <?php endif; ?>
 
@@ -376,6 +379,45 @@ $branches = $stmt_br->fetchAll();
         if (serviceRadios.length > 0) filterBranches();
 
 
+
+        function handleWAClick(btn, bookingId) {
+            // Hilangkan pulse
+            btn.classList.remove('animate-pulse');
+            
+            // Kirim AJAX diam-diam
+            fetch('booking-online.php?action=mark_pending&id=' + bookingId);
+
+            // Transisi Visual UI (tunggu setengah detik agar transisi browser ke WA tidak terganggu)
+            setTimeout(() => {
+                const actionWrapper = document.getElementById('actionWrapper');
+                const statusIconBg = document.getElementById('statusIconBg');
+                const iconAlert = document.getElementById('iconAlert');
+                const iconWait = document.getElementById('iconWait');
+                const statusTitle = document.getElementById('statusTitle');
+                const statusDesc = document.getElementById('statusDesc');
+
+                if(!actionWrapper) return;
+
+                // Hilangkan area aksi (rekening & tombol)
+                actionWrapper.classList.remove('opacity-100');
+                actionWrapper.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'overflow-hidden');
+                
+                // Ubah ikon ke Jam Pasir
+                statusIconBg.classList.remove('bg-red-100');
+                statusIconBg.classList.add('bg-blue-100', 'animate-pulse');
+                iconAlert.classList.add('hidden');
+                iconWait.classList.remove('hidden');
+
+                // Ubah Judul & Warna
+                statusTitle.textContent = 'MENUNGGU KONFIRMASI ADMIN';
+                statusTitle.classList.remove('text-red-600');
+                statusTitle.classList.add('text-blue-600');
+
+                // Ubah Deskripsi
+                statusDesc.innerHTML = 'Anda sudah diarahkan ke WhatsApp. Silakan selesaikan pengiriman foto bukti transfer DP Anda di sana.<br><br><strong class="text-blue-700">Kode Booking akan diberikan oleh Admin melalui balasan WhatsApp setelah pengecekan.</strong>';
+                
+            }, 500); 
+        }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
