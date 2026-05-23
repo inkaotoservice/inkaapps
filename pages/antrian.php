@@ -562,7 +562,7 @@ function renderBoard() {
                     `;
                 } else {
                     actions = `
-                        <button onclick="updateStatus('${b.id}', 'processing')" class="w-full mt-2.5 py-2 bg-blue-600 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-blue-700 transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                        <button onclick="updateStatus('\${b.id}', 'processing')" class="w-full mt-2.5 py-2 bg-blue-600 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-blue-700 transition-all flex items-center justify-center gap-1.5 shadow-sm">
                             Mulai Kerjakan <i data-lucide="play" class="w-3 h-3 fill-current"></i>
                         </button>
                         <div class="flex gap-1.5 mt-1.5">
