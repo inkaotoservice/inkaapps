@@ -370,11 +370,12 @@ if (in_array($role, ['owner', 'manager_ops', 'spv'])) {
                         </div>
 
                         <div class="space-y-3">
-                            <label class="text-xs font-bold uppercase tracking-widest text-emerald-500">Margin Laba (%)</label>
+                            <label class="text-xs font-bold uppercase tracking-widest text-emerald-500">Margin Laba (%) <span class="text-slate-400 normal-case tracking-normal">min. 40%</span></label>
                             <div class="relative">
                                 <i data-lucide="percent" class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 w-5 h-5"></i>
-                                <input type="number" id="itemMargin" onkeyup="updatePriceFromMargin()" class="w-full pl-12 pr-4 py-4 bg-emerald-50 border border-emerald-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:outline-none focus:bg-white transition-all font-bold text-emerald-700" placeholder="0">
+                                <input type="number" id="itemMargin" min="40" oninput="enforceMinMargin()" onblur="enforceMinMarginBlur()" class="w-full pl-12 pr-4 py-4 bg-emerald-50 border border-emerald-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:outline-none focus:bg-white transition-all font-bold text-emerald-700" placeholder="40">
                             </div>
+                            <p id="marginWarning" class="text-xs font-bold text-red-500 hidden"><i data-lucide="alert-triangle" class="w-3 h-3 inline-block mr-1"></i>Margin laba minimal 40%!</p>
                         </div>
 
                         <div class="space-y-3">
@@ -735,9 +736,38 @@ function setFormCat(cat) {
     }
 }
 
+function enforceMinMargin() {
+    const marginInput = document.getElementById('itemMargin');
+    const warning = document.getElementById('marginWarning');
+    const margin = parseInt(marginInput.value);
+    
+    if (marginInput.value !== '' && margin < 40) {
+        marginInput.classList.add('border-red-400', 'bg-red-50', 'text-red-600');
+        marginInput.classList.remove('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
+        warning.classList.remove('hidden');
+    } else {
+        marginInput.classList.remove('border-red-400', 'bg-red-50', 'text-red-600');
+        marginInput.classList.add('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
+        warning.classList.add('hidden');
+    }
+    updatePriceFromMargin();
+}
+
+function enforceMinMarginBlur() {
+    const marginInput = document.getElementById('itemMargin');
+    const margin = parseInt(marginInput.value);
+    if (marginInput.value === '' || margin < 40) {
+        marginInput.value = 40;
+        marginInput.classList.remove('border-red-400', 'bg-red-50', 'text-red-600');
+        marginInput.classList.add('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
+        document.getElementById('marginWarning').classList.add('hidden');
+        updatePriceFromMargin();
+    }
+}
+
 function updatePriceFromMargin() {
     const cost = parseRp(document.getElementById('itemCost').value);
-    const margin = parseInt(document.getElementById('itemMargin').value) || 0;
+    let margin = parseInt(document.getElementById('itemMargin').value) || 0;
     if(cost > 0) {
         const p = cost + (cost * margin / 100);
         document.getElementById('itemPrice').value = formatRp(Math.round(p));
@@ -746,9 +776,20 @@ function updatePriceFromMargin() {
 function updateMarginFromPrice() {
     const cost = parseRp(document.getElementById('itemCost').value);
     const price = parseRp(document.getElementById('itemPrice').value);
+    const marginInput = document.getElementById('itemMargin');
+    const warning = document.getElementById('marginWarning');
     if(cost > 0 && price > 0) {
         const m = Math.round(((price - cost) / cost) * 100);
-        document.getElementById('itemMargin').value = m;
+        marginInput.value = m;
+        if (m < 40) {
+            marginInput.classList.add('border-red-400', 'bg-red-50', 'text-red-600');
+            marginInput.classList.remove('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
+            warning.classList.remove('hidden');
+        } else {
+            marginInput.classList.remove('border-red-400', 'bg-red-50', 'text-red-600');
+            marginInput.classList.add('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
+            warning.classList.add('hidden');
+        }
     }
 }
 
