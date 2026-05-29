@@ -25,6 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim($_POST['description']);
         $stock       = ($category === 'Spare Part' && $_POST['stock'] !== '') ? (int)$_POST['stock'] : null;
         
+        if ($cost_price > 0) {
+            $margin = (($price - $cost_price) / $cost_price) * 100;
+            if ($margin < 40) {
+                echo json_encode(['success' => false, 'error' => 'Margin laba minimal 40%. Silakan sesuaikan Harga Jual.']);
+                exit;
+            }
+        }
+        
         try {
             $existing_branch = null;
             if ($id) {
@@ -94,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         try {
             $pdo->beginTransaction();
-            $sql = "SELECT id, price FROM catalog WHERE is_active = 1";
+            $sql = "SELECT id, price, cost_price FROM catalog WHERE is_active = 1";
             $params = [];
             if (!in_array($role, ['owner', 'manager_ops', 'spv']) && $user_branch_id) {
                 $sql .= " AND (branch_id = ? OR branch_id IS NULL)";
@@ -106,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtUpdate = $pdo->prepare("UPDATE catalog SET price = ? WHERE id = ?");
             foreach ($items->fetchAll() as $item) {
                 $current_price = (float)$item['price'];
+                $cost_price = (float)$item['cost_price'];
                 $new_price = $current_price;
                 if ($type === 'percent') {
                     $factor = $mode === 'increase' ? (1 + $value / 100) : (1 - $value / 100);
@@ -115,6 +124,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $new_price = $mode === 'increase' ? $current_price + $value : $current_price - $value;
                 }
                 $new_price = max(0, $new_price);
+                
+                if ($cost_price > 0) {
+                    $margin = (($new_price - $cost_price) / $cost_price) * 100;
+                    if ($margin < 40) {
+                        throw new Exception("Update massal dibatalkan karena ada item yang margin labanya menjadi di bawah 40%.");
+                    }
+                }
+                
                 $stmtUpdate->execute([$new_price, $item['id']]);
             }
             $pdo->commit();
@@ -773,6 +790,17 @@ function deleteItem(id) {
 
 function saveItem(e) {
     e.preventDefault();
+    
+    const costVal = parseRp(document.getElementById('itemCost').value);
+    const priceVal = parseRp(document.getElementById('itemPrice').value);
+    if (costVal > 0) {
+        const m = Math.round(((priceVal - costVal) / costVal) * 100);
+        if (m < 40) {
+            showToast('error', 'Gagal', 'Margin laba minimal 40%. Silakan sesuaikan Harga Jual.');
+            return;
+        }
+    }
+
     const btn = document.getElementById('btnSubmitForm');
     btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Menyimpan...';
     lucide.createIcons();
