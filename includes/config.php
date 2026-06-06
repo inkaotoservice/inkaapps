@@ -1,8 +1,8 @@
 <?php
 // Konfigurasi Database Laragon
-if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1') {
-    // Konfigurasi Database Lokal
-    define('BASE_URL', 'http://localhost/bengkel-pro-php/'); 
+if (php_sapi_name() === 'cli' || $_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1') {
+    // Konfigurasi Database Lokal (XAMPP Port 8080)
+    define('BASE_URL', 'http://localhost:8080/bengkel-pro-php-v1/'); 
     $host = 'localhost';
     $db   = 'bengkel_pro';
     $user = 'root';

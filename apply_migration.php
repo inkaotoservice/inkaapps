@@ -16,3 +16,17 @@ try {
 } catch (PDOException $e) {
     echo "ERROR: " . $e->getMessage();
 }
+
+try {
+    $stmt = $pdo->query("SHOW COLUMNS FROM transactions LIKE 'mechanic_name'");
+    $exists = $stmt->fetch();
+    
+    if (!$exists) {
+        $pdo->exec("ALTER TABLE transactions ADD COLUMN mechanic_name VARCHAR(255) NULL AFTER status");
+        echo "<br>SUCCESS: Column mechanic_name added to transactions.";
+    } else {
+        echo "<br>SUCCESS: Column mechanic_name already exists.";
+    }
+} catch (PDOException $e) {
+    echo "<br>ERROR: " . $e->getMessage();
+}

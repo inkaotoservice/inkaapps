@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   discount_amount BIGINT DEFAULT 0,
   payment_method VARCHAR(50) DEFAULT 'Cash',
   status         ENUM('Draft','In Progress','Paid','Cancelled') DEFAULT 'Paid',
+  mechanic_name  VARCHAR(255) DEFAULT NULL,
   created_by     VARCHAR(36),
   created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

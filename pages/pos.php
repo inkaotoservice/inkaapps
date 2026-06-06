@@ -64,8 +64,8 @@ if (isset($_GET['ajax'])) {
                 $pdo->prepare("DELETE FROM transaction_items WHERE transaction_id = ?")->execute([$transaction_id]);
             }
 
-            $stmt = $pdo->prepare("INSERT INTO transactions (id, booking_id, branch_id, customer_name, total_amount, dp_amount, discount, payment_method, status, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) 
+            $stmt = $pdo->prepare("INSERT INTO transactions (id, booking_id, branch_id, customer_name, total_amount, dp_amount, discount, payment_method, status, mechanic_name, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()) 
                 ON DUPLICATE KEY UPDATE 
                 booking_id = VALUES(booking_id),
                 customer_name = VALUES(customer_name), 
@@ -73,7 +73,8 @@ if (isset($_GET['ajax'])) {
                 dp_amount = VALUES(dp_amount),
                 discount = VALUES(discount),
                 payment_method = VALUES(payment_method), 
-                status = VALUES(status)");
+                status = VALUES(status),
+                mechanic_name = VALUES(mechanic_name)");
             
             $stmt->execute([
                 $transaction_id,
@@ -84,7 +85,8 @@ if (isset($_GET['ajax'])) {
                 $data['dp_amount'] ?? 0,
                 $data['discount'] ?? 0,
                 $data['payment_method'] ?? 'Cash',
-                $status
+                $status,
+                $data['mechanic_name'] ?? null
             ]);
 
             foreach ($data['items'] as $item) {
@@ -160,6 +162,7 @@ elseif (!empty($_GET['customer'])) {
 if (isset($draft) && $draft) {
     $initial_data['currentDraftId'] = $draft['id'];
     $initial_data['appliedDiscount'] = $draft['discount'] ?? 0;
+    $initial_data['mechanicName'] = $draft['mechanic_name'] ?? '';
     $initial_data['activeCustomer'] = [
         'id' => $draft['booking_id'], 
         'customer_name' => $draft['customer_name'], 
@@ -220,6 +223,10 @@ if (isset($draft) && $draft) {
 
         <div class="px-4 py-3 bg-white border-t border-slate-200">
             <div class="space-y-2 mb-4">
+                <div class="flex justify-between items-center text-xs pb-2 border-b border-slate-100">
+                    <span class="font-medium text-slate-400">Montir</span>
+                    <input type="text" id="inputMechanic" value="" placeholder="Contoh: Budi, Tono" class="w-32 text-right px-2 py-1 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 rounded outline-none focus:ring-2 focus:ring-blue-500/20">
+                </div>
                 <div class="flex justify-between items-center text-xs"><span class="font-medium text-slate-400">Subtotal</span><span id="summarySubtotal" class="font-bold text-slate-700">Rp 0</span></div>
                 <div class="flex justify-between items-center text-xs pb-2 border-b border-slate-100">
                     <span class="font-medium text-slate-400">Diskon (Rp)</span>
@@ -320,11 +327,16 @@ let currentDraftId = '<?php echo $initial_data['currentDraftId']; ?>';
 let currentBookingId = '<?php echo $initial_data['currentBookingId']; ?>';
 let appliedDiscount = <?php echo $initial_data['appliedDiscount'] ?? 0; ?>;
 let selectedCategory = 'all';
+let currentMechanicName = '<?php echo addslashes($initial_data['mechanicName'] ?? ''); ?>';
 
 document.addEventListener('DOMContentLoaded', () => { 
     const discEl = document.getElementById('inputDiscount');
     if (discEl && appliedDiscount > 0) {
         discEl.value = formatRibuan(appliedDiscount);
+    }
+    const mechEl = document.getElementById('inputMechanic');
+    if (mechEl && currentMechanicName) {
+        mechEl.value = currentMechanicName;
     }
     fetchCatalog(); 
     updateUI(); 
@@ -512,6 +524,7 @@ function processTransaction(status) {
         transaction_id: currentDraftId,
         customer_name: activeCustomer ? activeCustomer.customer_name : 'Guest',
         booking_id: currentBookingId || (activeCustomer ? activeCustomer.id : null) || null,
+        mechanic_name: document.getElementById('inputMechanic') ? document.getElementById('inputMechanic').value : '',
         payment_method: status === 'Paid' 
             ? document.querySelector('input[name="modal_pay_method"]:checked').value 
             : 'Cash',

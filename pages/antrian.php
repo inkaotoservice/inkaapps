@@ -14,9 +14,10 @@ $role = get_role();
 // ── HANDLER AJAX GET DATA (HARUS DI PALING ATAS, SEBELUM HTML) ───
 function get_active_bookings($pdo, $branch_id, $role, $filter_date = null, $search_query = null) {
     $params = [];
-    $sql = "SELECT b.*, br.name as branch_name 
+    $sql = "SELECT b.*, br.name as branch_name, t.mechanic_name 
             FROM bookings b 
             LEFT JOIN branches br ON b.branch_id = br.id 
+            LEFT JOIN transactions t ON b.id = t.booking_id
             WHERE b.status IN ('pending', 'processing', 'completed')";
 
     if (!empty($search_query)) {
@@ -638,6 +639,9 @@ function renderBoard() {
                         </p>
                         \${b.is_online == 1 && b.is_dp_paid == 1 ? `<span class="text-[7px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-1 py-0.5 rounded border border-emerald-100">DP LUNAS</span>` : ''}
                     </div>
+                    \${b.mechanic_name ? `
+                        <p class="text-[9px] font-semibold text-slate-500 mb-1.5 truncate"><i data-lucide="wrench" class="w-2.5 h-2.5 inline text-slate-400 mr-1"></i>\${b.mechanic_name}</p>
+                    ` : ''}
                     \${actions}
                 </div>
             `;
@@ -665,6 +669,13 @@ function renderBoard() {
                         <span class="text-[10px] text-slate-400">•</span>
                         <p class="text-[10px] text-slate-400 truncate italic">\${b.car_model}</p>
                     </div>
+
+                    \${b.mechanic_name ? `
+                        <div class="mt-1 flex items-center gap-1.5 text-[9px] font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg w-fit">
+                            <i data-lucide="wrench" class="w-3 h-3 text-slate-400"></i>
+                            <span>Montir: \${b.mechanic_name}</span>
+                        </div>
+                    ` : ''}
 
                     \${b.is_online == 1 ? `
                         <div class="mt-2 flex items-center gap-1.5 text-[9px] font-bold text-indigo-600 bg-indigo-50/50 px-2 py-1 rounded-lg w-fit">
