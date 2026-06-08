@@ -255,7 +255,7 @@ $branches = $stmt_br->fetchAll();
                 </div>
                 
                 <h2 id="statusTitle" class="text-2xl sm:text-3xl font-black text-red-600 uppercase tracking-tight mb-2 transition-all duration-500">Belum Selesai!</h2>
-                <p id="statusDesc" class="text-slate-600 font-medium mb-6 text-sm px-2 transition-all duration-500">Data Anda sudah tersimpan, namun **Kode Booking belum aktif**. Silakan lakukan pembayaran DP dan **wajib** kirim foto bukti transfer ke WhatsApp kami.</p>
+                <p id="statusDesc" class="text-slate-600 font-medium mb-6 text-sm px-2 transition-all duration-500">Data Anda sudah tersimpan, namun **Kode Booking belum aktif**. Silakan lakukan pembayaran booking fee dan **wajib** kirim foto bukti transfer ke WhatsApp kami.</p>
 
                 <div id="actionWrapper" class="transition-all duration-500 opacity-100">
                     <!-- Info Pembayaran -->
@@ -266,7 +266,7 @@ $branches = $stmt_br->fetchAll();
                     </div>
                     
                     <div class="mb-5 text-center">
-                        <p class="text-xs font-semibold text-slate-500 mb-1">Total DP yang harus ditransfer:</p>
+                        <p class="text-xs font-semibold text-slate-500 mb-1">Total booking fee yang harus ditransfer:</p>
                         <p class="text-3xl font-black text-slate-900"><?php echo rupiah($dp_amount); ?></p>
                     </div>
 
@@ -285,7 +285,7 @@ $branches = $stmt_br->fetchAll();
                 <!-- Siapkan Link WA -->
                 <?php 
                     $branch_name = $booking['branch_name'] ?? 'Cabang';
-                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pembayaran DP untuk pendaftaran *Booking Online*.\n\nBerikut data saya:\n*Sistem ID: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n[ ⚠️ JANGAN LUPA: Lampirkan foto/screenshot bukti transfer DP Anda sebelum menekan tombol kirim pesan ini ]\n\nMohon konfirmasi agar saya mendapatkan Kode Booking. Terima kasih!");
+                    $wa_msg = urlencode("Halo Admin Inka Otoservice ({$branch_name})\n\nSaya ingin konfirmasi pembayaran booking fee untuk pendaftaran *Booking Online*.\n\nBerikut data saya:\n*Sistem ID: " . $booking['booking_code'] . "*\n*Nama:* " . $booking['customer_name'] . "\n*Kendaraan:* " . $booking['car_model'] . " (" . $booking['license_plate'] . ")\n*Cabang:* " . $branch_name . "\n*Jadwal:* " . date('d M Y', strtotime($booking['service_date'])) . " | " . $booking['service_time'] . " WIB\n\n[ ⚠️ JANGAN LUPA: Lampirkan foto/screenshot bukti transfer booking fee Anda sebelum menekan tombol kirim pesan ini ]\n\nMohon konfirmasi agar saya mendapatkan Kode Booking. Terima kasih!");
                     
                     // Logic Anti-Salah: Prioritaskan deteksi nama cabang
                     $branch_name_lower = strtolower($branch_name);
@@ -414,7 +414,7 @@ $branches = $stmt_br->fetchAll();
                 statusTitle.classList.add('text-blue-600');
 
                 // Ubah Deskripsi
-                statusDesc.innerHTML = 'Anda sudah diarahkan ke WhatsApp. Silakan selesaikan pengiriman foto bukti transfer DP Anda di sana.<br><br><strong class="text-blue-700">Kode Booking akan diberikan oleh Admin melalui balasan WhatsApp setelah pengecekan.</strong>';
+                statusDesc.innerHTML = 'Anda sudah diarahkan ke WhatsApp. Silakan selesaikan pengiriman foto bukti transfer booking fee Anda di sana.<br><br><strong class="text-blue-700">Kode Booking akan diberikan oleh Admin melalui balasan WhatsApp setelah pengecekan.</strong>';
                 
             }, 500); 
         }
