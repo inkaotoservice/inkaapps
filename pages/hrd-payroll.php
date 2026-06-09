@@ -41,8 +41,8 @@ if (isset($_POST['delete_slip'])) {
 }
 
 // Ambil bulan dan tahun filter
-$filter_month = $_GET['month'] ?? date('n');
-$filter_year = $_GET['year'] ?? date('Y');
+$filter_month = !empty($_GET['month']) ? $_GET['month'] : date('n');
+$filter_year = !empty($_GET['year']) ? $_GET['year'] : date('Y');
 
 // Fetch slips
 $stmt = $pdo->prepare("
@@ -150,7 +150,7 @@ include '../includes/sidebar.php';
                             </td>
                             <td class="px-6 py-4">
                                 <p class="font-bold text-slate-900"><?php echo htmlspecialchars($slip['emp_name']); ?></p>
-                                <p class="text-xs text-slate-500"><?php echo htmlspecialchars($slip['position']); ?></p>
+                                <p class="text-xs text-slate-500"><?php echo htmlspecialchars($slip['position'] ?? ''); ?></p>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <p class="font-bold text-slate-700"><?php echo rupiah($slip['gross_salary']); ?></p>

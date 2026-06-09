@@ -29,30 +29,30 @@ if (isset($_POST['save_slip'])) {
         }
         
         // Ambil komponen dari form (sudah dalam bentuk raw tanpa Rp)
-        $basic_salary = preg_replace('/[^0-9]/', '', $_POST['basic_salary'] ?? '0');
+        $basic_salary = (int)preg_replace('/[^0-9]/', '', $_POST['basic_salary'] ?? '0');
         $qty_days_present = (int)($_POST['qty_days_present'] ?? 0);
-        $daily_allowance_total = preg_replace('/[^0-9]/', '', $_POST['daily_allowance_total'] ?? '0');
+        $daily_allowance_total = (int)preg_replace('/[^0-9]/', '', $_POST['daily_allowance_total'] ?? '0');
         
         $qty_overtime_hours = (int)($_POST['qty_overtime_hours'] ?? 0);
-        $overtime_total = preg_replace('/[^0-9]/', '', $_POST['overtime_total'] ?? '0');
+        $overtime_total = (int)preg_replace('/[^0-9]/', '', $_POST['overtime_total'] ?? '0');
         
         $qty_late_minutes = (int)($_POST['qty_late_minutes'] ?? 0);
-        $late_penalty_total = preg_replace('/[^0-9]/', '', $_POST['late_penalty_total'] ?? '0');
+        $late_penalty_total = (int)preg_replace('/[^0-9]/', '', $_POST['late_penalty_total'] ?? '0');
         
         $qty_absent_days = (int)($_POST['qty_absent_days'] ?? 0);
-        $absence_penalty_total = preg_replace('/[^0-9]/', '', $_POST['absence_penalty_total'] ?? '0');
+        $absence_penalty_total = (int)preg_replace('/[^0-9]/', '', $_POST['absence_penalty_total'] ?? '0');
         
-        $bpjs_tk_deduction = preg_replace('/[^0-9]/', '', $_POST['bpjs_tk_deduction'] ?? '0');
-        $bpjs_deduction = preg_replace('/[^0-9]/', '', $_POST['bpjs_deduction'] ?? '0');
+        $bpjs_tk_deduction = (int)preg_replace('/[^0-9]/', '', $_POST['bpjs_tk_deduction'] ?? '0');
+        $bpjs_deduction = (int)preg_replace('/[^0-9]/', '', $_POST['bpjs_deduction'] ?? '0');
         
-        $gross_salary = preg_replace('/[^0-9]/', '', $_POST['gross_salary'] ?? '0');
+        $gross_salary = (int)preg_replace('/[^0-9]/', '', $_POST['gross_salary'] ?? '0');
         
-        $deduction_kasbon = preg_replace('/[^0-9]/', '', $_POST['deduction_kasbon'] ?? '0');
-        $deduction_tabungan = preg_replace('/[^0-9]/', '', $_POST['deduction_tabungan'] ?? '0');
-        $deduction_lain = preg_replace('/[^0-9]/', '', $_POST['deduction_lain'] ?? '0');
+        $deduction_kasbon = (int)preg_replace('/[^0-9]/', '', $_POST['deduction_kasbon'] ?? '0');
+        $deduction_tabungan = (int)preg_replace('/[^0-9]/', '', $_POST['deduction_tabungan'] ?? '0');
+        $deduction_lain = (int)preg_replace('/[^0-9]/', '', $_POST['deduction_lain'] ?? '0');
         
-        $total_deductions = preg_replace('/[^0-9]/', '', $_POST['total_deductions'] ?? '0');
-        $net_salary = preg_replace('/[^0-9]/', '', $_POST['net_salary'] ?? '0');
+        $total_deductions = (int)preg_replace('/[^0-9]/', '', $_POST['total_deductions'] ?? '0');
+        $net_salary = (int)preg_replace('/[^0-9]/', '', $_POST['net_salary'] ?? '0');
         
         $sisa_cuti = (int)($_POST['remaining_leave_after'] ?? 0);
         

@@ -15,7 +15,7 @@ $error = '';
 if (isset($_POST['save_loan'])) {
     $employee_id = $_POST['employee_id'];
     $type = $_POST['type']; // 'kasbon' or 'potongan_gaji'
-    $amount = preg_replace('/[^0-9]/', '', $_POST['amount'] ?? '0');
+    $amount = (int)preg_replace('/[^0-9]/', '', $_POST['amount'] ?? '0');
     $date = $_POST['date'];
     $description = trim($_POST['description']);
     
@@ -290,6 +290,7 @@ include '../includes/sidebar.php';
     lucide.createIcons();
     
     function formatRupiah(angka) {
+        if (!angka) return "0";
         let number_string = angka.toString().replace(/[^,\d]/g, ''),
         split   = number_string.split(','),
         sisa    = split[0].length % 3,

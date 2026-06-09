@@ -32,13 +32,13 @@ if (isset($_POST['save_employee'])) {
     $branch_id = !empty($_POST['branch_id']) ? $_POST['branch_id'] : null;
     
     // Konversi format uang ke integer
-    $basic_salary = preg_replace('/[^0-9]/', '', $_POST['basic_salary'] ?? '0');
-    $daily_allowance = preg_replace('/[^0-9]/', '', $_POST['daily_allowance'] ?? '0');
-    $overtime_rate = preg_replace('/[^0-9]/', '', $_POST['overtime_rate'] ?? '0');
-    $absence_penalty_per_day = preg_replace('/[^0-9]/', '', $_POST['absence_penalty_per_day'] ?? '0');
-    $late_penalty_per_minute = preg_replace('/[^0-9]/', '', $_POST['late_penalty_per_minute'] ?? '0');
-    $bpjs_tk_deduction = preg_replace('/[^0-9]/', '', $_POST['bpjs_tk_deduction'] ?? '0');
-    $bpjs_deduction = preg_replace('/[^0-9]/', '', $_POST['bpjs_deduction'] ?? '0');
+    $basic_salary = (int)preg_replace('/[^0-9]/', '', $_POST['basic_salary'] ?? '0');
+    $daily_allowance = (int)preg_replace('/[^0-9]/', '', $_POST['daily_allowance'] ?? '0');
+    $overtime_rate = (int)preg_replace('/[^0-9]/', '', $_POST['overtime_rate'] ?? '0');
+    $absence_penalty_per_day = (int)preg_replace('/[^0-9]/', '', $_POST['absence_penalty_per_day'] ?? '0');
+    $late_penalty_per_minute = (int)preg_replace('/[^0-9]/', '', $_POST['late_penalty_per_minute'] ?? '0');
+    $bpjs_tk_deduction = (int)preg_replace('/[^0-9]/', '', $_POST['bpjs_tk_deduction'] ?? '0');
+    $bpjs_deduction = (int)preg_replace('/[^0-9]/', '', $_POST['bpjs_deduction'] ?? '0');
     
     $remaining_leave = (int)($_POST['remaining_leave'] ?? 0);
 
@@ -152,7 +152,7 @@ include '../includes/sidebar.php';
                                 <p class="font-bold text-slate-900"><?php echo htmlspecialchars($emp['name']); ?></p>
                             </td>
                             <td class="px-6 py-4">
-                                <p class="font-semibold text-slate-700"><?php echo htmlspecialchars($emp['position']); ?></p>
+                                <p class="font-semibold text-slate-700"><?php echo htmlspecialchars($emp['position'] ?? ''); ?></p>
                                 <p class="text-xs text-slate-400"><?php echo htmlspecialchars($emp['branch_name'] ?? 'Pusat'); ?></p>
                             </td>
                             <td class="px-6 py-4">
@@ -316,6 +316,7 @@ include '../includes/sidebar.php';
     lucide.createIcons();
     
     function formatRupiah(angka) {
+        if (!angka) return "0";
         let number_string = angka.toString().replace(/[^,\d]/g, ''),
         split   = number_string.split(','),
         sisa    = split[0].length % 3,
