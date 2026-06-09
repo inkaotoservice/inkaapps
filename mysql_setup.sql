@@ -288,7 +288,7 @@ INSERT IGNORE INTO app_settings (`key`, `value`) VALUES
   ('payment_bank_name', 'Bank BCA'),
   ('payment_account_number', '1234567890'),
   ('payment_account_name', 'PT Inka Otoservice'),
-  ('company_name_payroll', 'PT. RUMI SOLUSI OTOMOTIF');
+  ('company_name_payroll', 'INKA OTOSERVICE');
 
 -- ================================================================
 -- SAMPLE CATALOG

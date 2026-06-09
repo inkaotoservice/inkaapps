@@ -29,7 +29,7 @@ if (!$slip) {
 }
 
 // Get company name from settings
-$company_name = get_setting('company_name_payroll', 'PT. RUMI SOLUSI OTOMOTIF');
+$company_name = get_setting('company_name_payroll', 'INKA OTOSERVICE');
 
 $months = [
     1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni',

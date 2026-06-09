@@ -83,7 +83,7 @@ try {
 }
 
 try {
-    $stmt = $pdo->prepare("INSERT IGNORE INTO app_settings (`key`, `value`) VALUES ('company_name_payroll', 'PT. RUMI SOLUSI OTOMOTIF')");
+    $stmt = $pdo->prepare("INSERT IGNORE INTO app_settings (`key`, `value`) VALUES ('company_name_payroll', 'INKA OTOSERVICE')");
     $stmt->execute();
     echo "SUCCESS: Inserted default settings.<br>";
 } catch (PDOException $e) {

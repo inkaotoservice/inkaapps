@@ -317,8 +317,8 @@ include '../includes/sidebar.php';
 
                                 <div>
                                     <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Nama Perusahaan (Slip Gaji)</label>
-                                    <input type="text" name="company_name_payroll" placeholder="PT. RUMI SOLUSI OTOMOTIF"
-                                        value="<?php echo htmlspecialchars($settings['company_name_payroll'] ?? 'PT. RUMI SOLUSI OTOMOTIF'); ?>"
+                                    <input type="text" name="company_name_payroll" placeholder="INKA OTOSERVICE"
+                                        value="<?php echo htmlspecialchars($settings['company_name_payroll'] ?? 'INKA OTOSERVICE'); ?>"
                                         class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-semibold text-slate-900">
                                     <p class="mt-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Nama perusahaan yang muncul di header slip gaji HRD.</p>
                                 </div>

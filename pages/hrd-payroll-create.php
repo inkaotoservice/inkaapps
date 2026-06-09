@@ -492,7 +492,7 @@ include '../includes/sidebar.php';
         document.getElementById('qty_overtime_hours').value = 0;
         document.getElementById('qty_late_minutes').value = 0;
         document.getElementById('qty_absent_days').value = 0;
-        document.getElementById('deduction_kasbon').value = 0;
+        document.getElementById('deduction_kasbon').value = formatRupiah(emp.remaining_loan);
         document.getElementById('deduction_tabungan').value = 0;
         document.getElementById('deduction_lain').value = 0;
         
