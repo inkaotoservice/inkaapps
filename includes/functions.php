@@ -87,10 +87,11 @@ function redirect_by_role() {
 // FORMAT HELPERS
 // -----------------------------------------------
 function rupiah($amount) {
-    return 'Rp ' . number_format($amount, 0, ',', '.');
+    return 'Rp ' . number_format((float)$amount, 0, ',', '.');
 }
 
 function short_rupiah($amount) {
+    $amount = (float)$amount;
     if ($amount >= 1000000000) return 'Rp ' . number_format($amount / 1000000000, 1, ',', '.') . 'M';
     if ($amount >= 1000000)    return 'Rp ' . number_format($amount / 1000000, 1, ',', '.') . 'jt';
     if ($amount >= 1000)       return 'Rp ' . number_format($amount / 1000, 1, ',', '.') . 'rb';
