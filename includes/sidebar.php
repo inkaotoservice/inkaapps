@@ -7,6 +7,7 @@ $nav_groups = [
     'Laporan'    => 'Laporan',
     'Manajemen'  => 'Manajemen',
     'Sistem'     => 'Sistem',
+    'HRD'        => 'HRD & Payroll',
 ];
 
 $filtered_nav = get_filtered_nav();

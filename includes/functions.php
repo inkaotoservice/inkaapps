@@ -142,6 +142,10 @@ function get_navigation() {
         ['name'=>'Organisasi',          'href'=>'pages/branches.php',             'icon'=>'building-2',       'roles'=>['owner','manager_ops'],                                'group'=>'Manajemen'],
         // Sistem
         ['name'=>'Pengaturan Sistem',   'href'=>'pages/settings.php',             'icon'=>'settings',          'roles'=>['owner','manager_ops','admin','admin_depok','admin_bsd'], 'group'=>'Sistem'],
+        // HRD & Payroll
+        ['name'=>'Data Karyawan',       'href'=>'pages/hrd-employees.php',        'icon'=>'users',             'roles'=>['owner','manager_ops'], 'group'=>'HRD'],
+        ['name'=>'Kasbon & Pinjaman',   'href'=>'pages/hrd-loans.php',            'icon'=>'wallet',            'roles'=>['owner','manager_ops'], 'group'=>'HRD'],
+        ['name'=>'Penggajian',          'href'=>'pages/hrd-payroll.php',          'icon'=>'receipt',           'roles'=>['owner','manager_ops'], 'group'=>'HRD'],
     ];
 }
 

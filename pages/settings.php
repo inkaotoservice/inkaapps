@@ -36,6 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('receipt_logo_url', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$receipt_logo_url, $receipt_logo_url]);
             $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('receipt_notes', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$receipt_notes, $receipt_notes]);
             
+            if (isset($_POST['company_name_payroll'])) {
+                $comp_name = trim($_POST['company_name_payroll']);
+                $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('company_name_payroll', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$comp_name, $comp_name]);
+            }
+            
             if (isset($_POST['payment_bank_name'])) {
                 $bank_name = trim($_POST['payment_bank_name']);
                 $pdo->prepare("INSERT INTO app_settings (`key`, `value`) VALUES ('payment_bank_name', ?) ON DUPLICATE KEY UPDATE `value` = ?")->execute([$bank_name, $bank_name]);
@@ -308,6 +313,14 @@ include '../includes/sidebar.php';
                                             onkeyup="this.value = formatRupiah(this.value)"
                                             class="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-semibold text-slate-900">
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Nama Perusahaan (Slip Gaji)</label>
+                                    <input type="text" name="company_name_payroll" placeholder="PT. RUMI SOLUSI OTOMOTIF"
+                                        value="<?php echo htmlspecialchars($settings['company_name_payroll'] ?? 'PT. RUMI SOLUSI OTOMOTIF'); ?>"
+                                        class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-semibold text-slate-900">
+                                    <p class="mt-2 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Nama perusahaan yang muncul di header slip gaji HRD.</p>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
