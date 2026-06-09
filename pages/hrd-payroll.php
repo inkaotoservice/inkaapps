@@ -46,9 +46,9 @@ $filter_year = !empty($_GET['year']) ? $_GET['year'] : date('Y');
 
 // Fetch slips
 $stmt = $pdo->prepare("
-    SELECT s.*, e.name as emp_name, e.position 
+    SELECT s.*, p.full_name as emp_name, p.jobdesk as position 
     FROM salary_slips s 
-    JOIN employees e ON s.employee_id = e.id 
+    JOIN profiles p ON s.employee_id = p.id 
     WHERE s.period_month = ? AND s.period_year = ? 
     ORDER BY s.created_at DESC
 ");

@@ -12,24 +12,9 @@ if (!in_array(get_role(), ['owner', 'manager_ops'])) {
 $success = '';
 $error = '';
 
-// --- Handle Delete ---
-if (isset($_POST['delete_employee'])) {
-    $id = $_POST['id'];
-    try {
-        $stmt = $pdo->prepare("DELETE FROM employees WHERE id = ?");
-        $stmt->execute([$id]);
-        $success = "Data karyawan berhasil dihapus.";
-    } catch (Exception $e) {
-        $error = "Gagal menghapus data: " . $e->getMessage();
-    }
-}
-
 // --- Handle Save (Add/Edit) ---
 if (isset($_POST['save_employee'])) {
     $id = $_POST['id'] ?? '';
-    $name = trim($_POST['name']);
-    $position = trim($_POST['position']);
-    $branch_id = !empty($_POST['branch_id']) ? $_POST['branch_id'] : null;
     
     // Konversi format uang ke integer
     $basic_salary = (int)preg_replace('/[^0-9]/', '', $_POST['basic_salary'] ?? '0');
@@ -44,36 +29,40 @@ if (isset($_POST['save_employee'])) {
 
     try {
         if ($id) {
-            // Update
-            $stmt = $pdo->prepare("
-                UPDATE employees SET 
-                name=?, position=?, branch_id=?, basic_salary=?, daily_allowance=?, 
-                overtime_rate=?, absence_penalty_per_day=?, late_penalty_per_minute=?, 
-                bpjs_tk_deduction=?, bpjs_deduction=?, remaining_leave=?
-                WHERE id=?
-            ");
-            $stmt->execute([
-                $name, $position, $branch_id, $basic_salary, $daily_allowance, 
-                $overtime_rate, $absence_penalty_per_day, $late_penalty_per_minute, 
-                $bpjs_tk_deduction, $bpjs_deduction, $remaining_leave, $id
-            ]);
-            $success = "Data karyawan berhasil diperbarui.";
-        } else {
-            // Insert
-            $id = uuid();
-            $stmt = $pdo->prepare("
-                INSERT INTO employees (
-                    id, name, position, branch_id, basic_salary, daily_allowance, 
-                    overtime_rate, absence_penalty_per_day, late_penalty_per_minute, 
-                    bpjs_tk_deduction, bpjs_deduction, remaining_leave
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ");
-            $stmt->execute([
-                $id, $name, $position, $branch_id, $basic_salary, $daily_allowance, 
-                $overtime_rate, $absence_penalty_per_day, $late_penalty_per_minute, 
-                $bpjs_tk_deduction, $bpjs_deduction, $remaining_leave
-            ]);
-            $success = "Karyawan baru berhasil ditambahkan.";
+            // Check if employee record already exists
+            $check = $pdo->prepare("SELECT id FROM employees WHERE id = ?");
+            $check->execute([$id]);
+            
+            if ($check->fetch()) {
+                // Update
+                $stmt = $pdo->prepare("
+                    UPDATE employees SET 
+                    basic_salary=?, daily_allowance=?, 
+                    overtime_rate=?, absence_penalty_per_day=?, late_penalty_per_minute=?, 
+                    bpjs_tk_deduction=?, bpjs_deduction=?, remaining_leave=?
+                    WHERE id=?
+                ");
+                $stmt->execute([
+                    $basic_salary, $daily_allowance, 
+                    $overtime_rate, $absence_penalty_per_day, $late_penalty_per_minute, 
+                    $bpjs_tk_deduction, $bpjs_deduction, $remaining_leave, $id
+                ]);
+            } else {
+                // Insert
+                $stmt = $pdo->prepare("
+                    INSERT INTO employees (
+                        id, basic_salary, daily_allowance, 
+                        overtime_rate, absence_penalty_per_day, late_penalty_per_minute, 
+                        bpjs_tk_deduction, bpjs_deduction, remaining_leave, remaining_loan
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                ");
+                $stmt->execute([
+                    $id, $basic_salary, $daily_allowance, 
+                    $overtime_rate, $absence_penalty_per_day, $late_penalty_per_minute, 
+                    $bpjs_tk_deduction, $bpjs_deduction, $remaining_leave
+                ]);
+            }
+            $success = "Data gaji karyawan berhasil diperbarui.";
         }
     } catch (Exception $e) {
         $error = "Gagal menyimpan data: " . $e->getMessage();
@@ -83,8 +72,18 @@ if (isset($_POST['save_employee'])) {
 // Fetch branches for dropdown
 $branches = $pdo->query("SELECT id, name FROM branches ORDER BY name")->fetchAll();
 
-// Fetch employees
-$query = "SELECT e.*, b.name as branch_name FROM employees e LEFT JOIN branches b ON e.branch_id = b.id ORDER BY e.name ASC";
+// Fetch employees (from profiles joined with employees)
+$query = "SELECT p.id, p.full_name as name, p.jobdesk as position, p.branch_id, b.name as branch_name, 
+          COALESCE(e.basic_salary, 0) as basic_salary, COALESCE(e.daily_allowance, 0) as daily_allowance, 
+          COALESCE(e.overtime_rate, 0) as overtime_rate, COALESCE(e.absence_penalty_per_day, 0) as absence_penalty_per_day, 
+          COALESCE(e.late_penalty_per_minute, 0) as late_penalty_per_minute, 
+          COALESCE(e.bpjs_tk_deduction, 0) as bpjs_tk_deduction, COALESCE(e.bpjs_deduction, 0) as bpjs_deduction, 
+          COALESCE(e.remaining_leave, 0) as remaining_leave, COALESCE(e.remaining_loan, 0) as remaining_loan
+          FROM profiles p 
+          LEFT JOIN branches b ON p.branch_id = b.id 
+          LEFT JOIN employees e ON p.id = e.id 
+          WHERE p.role != 'member' 
+          ORDER BY p.full_name ASC";
 $employees = $pdo->query($query)->fetchAll();
 
 $page_title = 'Data Karyawan';
@@ -104,10 +103,10 @@ include '../includes/sidebar.php';
                 <p class="text-[10px] lg:text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5 lg:mt-1">Kelola data profil dan standar gaji</p>
             </div>
         </div>
-        <button onclick="openModal()" class="h-10 lg:h-12 px-4 lg:px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg shadow-blue-500/30 active:scale-95 flex items-center gap-2">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Tambah Karyawan</span>
-        </button>
+        <a href="staff.php" class="h-10 lg:h-12 px-4 lg:px-6 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Kelola Akun Staf</span>
+        </a>
     </header>
 
     <!-- Content -->
@@ -170,16 +169,9 @@ include '../includes/sidebar.php';
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onclick="editEmployee(<?php echo htmlspecialchars(json_encode($emp)); ?>)" 
-                                            class="w-8 h-8 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center transition-colors">
-                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                            class="h-8 px-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center gap-2 transition-colors font-bold text-[10px] uppercase tracking-widest">
+                                        <i data-lucide="edit" class="w-3 h-3"></i> Setel Gaji
                                     </button>
-                                    <form method="POST" onsubmit="return confirm('Hapus karyawan ini?');" class="inline">
-                                        <input type="hidden" name="id" value="<?php echo $emp['id']; ?>">
-                                        <button type="submit" name="delete_employee" 
-                                                class="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center justify-center transition-colors">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -209,18 +201,18 @@ include '../includes/sidebar.php';
                 <h4 class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="user" class="w-3 h-3"></i> Informasi Dasar</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nama Lengkap</label>
-                        <input type="text" name="name" id="emp_name" required
-                            class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none transition-all font-semibold text-sm">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Nama Lengkap (Otomatis)</label>
+                        <input type="text" name="name" id="emp_name" readonly
+                            class="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 outline-none transition-all font-semibold text-sm text-slate-500 cursor-not-allowed">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Posisi / Jabatan</label>
-                        <input type="text" name="position" id="emp_position" placeholder="Cth: Mekanik Kepala" required
-                            class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none transition-all font-semibold text-sm">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Posisi / Jabatan (Otomatis)</label>
+                        <input type="text" name="position" id="emp_position" readonly
+                            class="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 outline-none transition-all font-semibold text-sm text-slate-500 cursor-not-allowed">
                     </div>
                     <div>
                         <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Cabang Penempatan</label>
-                        <select name="branch_id" id="emp_branch" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 outline-none transition-all font-bold text-sm text-slate-700">
+                        <select name="branch_id" id="emp_branch" disabled class="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 outline-none transition-all font-bold text-sm text-slate-500 cursor-not-allowed">
                             <option value="">Pusat / Head Office</option>
                             <?php foreach ($branches as $br): ?>
                                 <option value="<?php echo $br['id']; ?>"><?php echo htmlspecialchars($br['name']); ?></option>
@@ -336,26 +328,7 @@ include '../includes/sidebar.php';
     const modalContent = document.getElementById('employeeModalContent');
     
     function openModal() {
-        document.getElementById('modalTitle').textContent = 'Tambah Karyawan';
-        document.getElementById('emp_id').value = '';
-        document.getElementById('emp_name').value = '';
-        document.getElementById('emp_position').value = '';
-        document.getElementById('emp_branch').value = '';
-        document.getElementById('emp_leave').value = '0';
-        document.getElementById('emp_basic').value = '0';
-        document.getElementById('emp_daily').value = '0';
-        document.getElementById('emp_overtime').value = '0';
-        document.getElementById('emp_abs_penalty').value = '0';
-        document.getElementById('emp_late_penalty').value = '0';
-        document.getElementById('emp_bpjstk').value = '0';
-        document.getElementById('emp_bpjs').value = '0';
-        
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            modalContent.classList.remove('scale-95');
-        }, 10);
+        // Disabled since we don't add employees here anymore
     }
     
     function closeModal() {
@@ -368,7 +341,7 @@ include '../includes/sidebar.php';
     }
     
     function editEmployee(emp) {
-        document.getElementById('modalTitle').textContent = 'Edit Karyawan';
+        document.getElementById('modalTitle').textContent = 'Setel Gaji Karyawan';
         document.getElementById('emp_id').value = emp.id;
         document.getElementById('emp_name').value = emp.name;
         document.getElementById('emp_position').value = emp.position;

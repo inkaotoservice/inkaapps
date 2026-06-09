@@ -15,10 +15,10 @@ if (!$slip_id) {
 }
 
 $stmt = $pdo->prepare("
-    SELECT s.*, e.name as emp_name, e.position as emp_position, b.name as branch_name
+    SELECT s.*, p.full_name as emp_name, p.jobdesk as emp_position, b.name as branch_name
     FROM salary_slips s 
-    JOIN employees e ON s.employee_id = e.id 
-    LEFT JOIN branches b ON e.branch_id = b.id
+    JOIN profiles p ON s.employee_id = p.id 
+    LEFT JOIN branches b ON p.branch_id = b.id
     WHERE s.id = ?
 ");
 $stmt->execute([$slip_id]);

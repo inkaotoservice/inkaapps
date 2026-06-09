@@ -56,6 +56,13 @@ if (isset($_POST['save_slip'])) {
         
         $sisa_cuti = (int)($_POST['remaining_leave_after'] ?? 0);
         
+        // Ensure employees row exists
+        $check = $pdo->prepare("SELECT id FROM employees WHERE id = ?");
+        $check->execute([$employee_id]);
+        if (!$check->fetch()) {
+            $pdo->prepare("INSERT INTO employees (id, remaining_loan, remaining_leave) VALUES (?, 0, 0)")->execute([$employee_id]);
+        }
+        
         // Update Sisa Kasbon jika ada potongan
         $remaining_loan_after = 0;
         if ($deduction_kasbon > 0) {
@@ -104,7 +111,22 @@ if (isset($_POST['save_slip'])) {
 }
 
 // Fetch all employees for JS to load their base data
-$employees = $pdo->query("SELECT * FROM employees ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+$employees = $pdo->query("
+    SELECT p.id, p.full_name as name, p.jobdesk as position, p.branch_id, 
+           COALESCE(e.basic_salary, 0) as basic_salary, 
+           COALESCE(e.daily_allowance, 0) as daily_allowance, 
+           COALESCE(e.overtime_rate, 0) as overtime_rate, 
+           COALESCE(e.absence_penalty_per_day, 0) as absence_penalty_per_day, 
+           COALESCE(e.late_penalty_per_minute, 0) as late_penalty_per_minute, 
+           COALESCE(e.bpjs_tk_deduction, 0) as bpjs_tk_deduction, 
+           COALESCE(e.bpjs_deduction, 0) as bpjs_deduction, 
+           COALESCE(e.remaining_leave, 0) as remaining_leave, 
+           COALESCE(e.remaining_loan, 0) as remaining_loan
+    FROM profiles p 
+    LEFT JOIN employees e ON p.id = e.id 
+    WHERE p.role != 'member' 
+    ORDER BY p.full_name ASC
+")->fetchAll(PDO::FETCH_ASSOC);
 $employees_json = json_encode($employees);
 
 $months = [

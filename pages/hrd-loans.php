@@ -27,6 +27,13 @@ if (isset($_POST['save_loan'])) {
             $stmt = $pdo->prepare("INSERT INTO employee_loans (id, employee_id, type, amount, date, description) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([$id, $employee_id, $type, $amount, $date, $description]);
             
+            // Pastikan row employees ada
+            $check = $pdo->prepare("SELECT id FROM employees WHERE id = ?");
+            $check->execute([$employee_id]);
+            if (!$check->fetch()) {
+                $pdo->prepare("INSERT INTO employees (id, remaining_loan) VALUES (?, 0)")->execute([$employee_id]);
+            }
+            
             if ($type === 'kasbon') {
                 $pdo->prepare("UPDATE employees SET remaining_loan = remaining_loan + ? WHERE id = ?")->execute([$amount, $employee_id]);
             } else {
@@ -54,6 +61,13 @@ if (isset($_POST['delete_loan'])) {
         $loan = $stmt->fetch();
         
         if ($loan && !$loan['salary_slip_id']) {
+            // Pastikan row employees ada
+            $check = $pdo->prepare("SELECT id FROM employees WHERE id = ?");
+            $check->execute([$loan['employee_id']]);
+            if (!$check->fetch()) {
+                $pdo->prepare("INSERT INTO employees (id, remaining_loan) VALUES (?, 0)")->execute([$loan['employee_id']]);
+            }
+            
             if ($loan['type'] === 'kasbon') {
                 $pdo->prepare("UPDATE employees SET remaining_loan = remaining_loan - ? WHERE id = ?")->execute([$loan['amount'], $loan['employee_id']]);
             } else {
@@ -73,10 +87,10 @@ if (isset($_POST['delete_loan'])) {
 }
 
 // Fetch employees for select
-$employees = $pdo->query("SELECT id, name, remaining_loan FROM employees ORDER BY name")->fetchAll();
+$employees = $pdo->query("SELECT p.id, p.full_name as name, COALESCE(e.remaining_loan, 0) as remaining_loan FROM profiles p LEFT JOIN employees e ON p.id = e.id WHERE p.role != 'member' ORDER BY p.full_name")->fetchAll();
 
 // Fetch recent loans
-$loans = $pdo->query("SELECT el.*, e.name as emp_name FROM employee_loans el JOIN employees e ON el.employee_id = e.id ORDER BY el.created_at DESC LIMIT 100")->fetchAll();
+$loans = $pdo->query("SELECT el.*, p.full_name as emp_name FROM employee_loans el JOIN profiles p ON el.employee_id = p.id ORDER BY el.created_at DESC LIMIT 100")->fetchAll();
 
 // Summary
 $total_piutang = $pdo->query("SELECT SUM(remaining_loan) FROM employees")->fetchColumn() ?: 0;
