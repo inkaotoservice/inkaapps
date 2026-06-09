@@ -139,6 +139,18 @@ include '../includes/header.php';
 include '../includes/sidebar.php';
 ?>
 
+<style>
+    /* Hilangkan arrow spinner pada input number */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+</style>
+
 <main class="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50 relative">
     <header class="h-16 lg:h-20 bg-white/50 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-40 shrink-0">
         <div class="flex items-center gap-3">
