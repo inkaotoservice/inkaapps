@@ -172,7 +172,7 @@ include '../includes/sidebar.php';
         </div>
         <?php endif; ?>
 
-        <form method="POST" id="payrollForm" class="max-w-5xl mx-auto space-y-6" onsubmit="return confirm('Apakah Anda yakin data ini sudah benar? Setelah disimpan, potongan kasbon akan langsung memotong sisa pinjaman karyawan.');">
+        <form method="POST" id="payrollForm" class="max-w-5xl mx-auto space-y-6" onsubmit="confirmSave(event)">
             
             <!-- HEADER (Karyawan & Periode) -->
             <div class="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-6 lg:p-8">
@@ -423,10 +423,73 @@ include '../includes/sidebar.php';
     </div>
 </main>
 
+<!-- Modal Konfirmasi Simpan -->
+<div id="confirmModal" class="hidden fixed inset-0 z-50 items-center justify-center bg-slate-900/40 backdrop-blur-sm px-4 transition-opacity duration-200 opacity-0">
+    <div class="bg-white rounded-3xl p-6 lg:p-8 max-w-md w-full shadow-2xl transform scale-95 transition-all duration-200 flex flex-col items-center text-center" id="modalContent">
+        <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-[1.5rem] flex items-center justify-center mb-6 shadow-inner border border-blue-100">
+            <i data-lucide="file-check-2" class="w-10 h-10"></i>
+        </div>
+        <h3 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tight">Simpan Slip Gaji?</h3>
+        <p class="text-sm font-semibold text-slate-500 mb-8 leading-relaxed">
+            Apakah Anda yakin data penggajian ini sudah benar?<br>
+            <span class="text-red-500 mt-1 block">Perhatian: Potongan kasbon akan memotong sisa pinjaman secara permanen.</span>
+        </p>
+        <div class="flex items-center gap-3 w-full">
+            <button type="button" onclick="closeConfirmModal()" class="flex-1 py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-black text-xs uppercase tracking-widest transition-colors active:scale-95">
+                Batal
+            </button>
+            <button type="button" onclick="submitForm()" class="flex-1 py-3.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i> Simpan
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     lucide.createIcons();
     
     const employeesData = <?php echo $employees_json; ?>;
+    
+    function confirmSave(e) {
+        e.preventDefault();
+        const modal = document.getElementById('confirmModal');
+        const content = document.getElementById('modalContent');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Trigger transition
+        requestAnimationFrame(() => {
+            modal.classList.remove('opacity-0');
+            modal.classList.add('opacity-100');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        });
+    }
+
+    function closeConfirmModal() {
+        const modal = document.getElementById('confirmModal');
+        const content = document.getElementById('modalContent');
+        
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0');
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 200);
+    }
+
+    function submitForm() {
+        const form = document.getElementById('payrollForm');
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'save_slip';
+        hiddenInput.value = '1';
+        form.appendChild(hiddenInput);
+        form.submit();
+    }
     
     function formatRupiah(angka) {
         if (!angka) return "0";
