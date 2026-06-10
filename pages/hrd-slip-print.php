@@ -148,17 +148,18 @@ $wa_url = "https://wa.me/?text=" . urlencode($wa_text);
         /* Header */
         .slip-header {
             padding: 40px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: #fff;
+            background: #fff;
+            color: #0f172a;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid #f8fafc;
         }
         .company-info .company-name {
             font-size: 24px;
             font-weight: 900;
             letter-spacing: 0.05em;
-            color: #fff;
+            color: #0f172a;
             margin-bottom: 4px;
             display: flex;
             align-items: center;
@@ -172,23 +173,22 @@ $wa_url = "https://wa.me/?text=" . urlencode($wa_text);
         .company-info .slip-title {
             font-size: 13px;
             font-weight: 600;
-            color: #94a3b8;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
         
         .employee-badge {
             text-align: right;
-            background: rgba(255,255,255,0.1);
+            background: #f8fafc;
             padding: 16px 24px;
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(4px);
+            border: 1px solid #e2e8f0;
         }
         .employee-badge .period {
             font-size: 11px;
-            font-weight: 700;
-            color: #38bdf8;
+            font-weight: 800;
+            color: #0ea5e9;
             text-transform: uppercase;
             letter-spacing: 0.1em;
             margin-bottom: 8px;
@@ -196,13 +196,13 @@ $wa_url = "https://wa.me/?text=" . urlencode($wa_text);
         .employee-badge .name {
             font-size: 20px;
             font-weight: 800;
-            color: #fff;
+            color: #0f172a;
             margin-bottom: 4px;
         }
         .employee-badge .position {
             font-size: 12px;
             font-weight: 600;
-            color: #cbd5e1;
+            color: #64748b;
         }
 
         /* Content */
@@ -274,26 +274,26 @@ $wa_url = "https://wa.me/?text=" . urlencode($wa_text);
 
         .grand-total {
             margin-top: 40px;
-            background: #0f172a;
-            color: #fff;
+            background: #ecfdf5;
+            color: #0f172a;
             padding: 24px 40px;
             border-radius: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.5);
+            border: 2px solid #10b981;
         }
         .grand-total-label {
             font-size: 14px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.15em;
-            color: #94a3b8;
+            color: #047857;
         }
         .grand-total-amount {
             font-size: 28px;
             font-weight: 900;
-            color: #34d399;
+            color: #047857;
         }
 
         /* Footer */
