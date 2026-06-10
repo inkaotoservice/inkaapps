@@ -44,26 +44,32 @@ $overtime_rate = ($slip['qty_overtime_hours'] > 0) ? round($slip['overtime_total
 $absence_rate = ($slip['qty_absent_days'] > 0) ? round($slip['absence_penalty_total'] / $slip['qty_absent_days']) : 0;
 
 // WA message
-$wa_text = "Halo *" . $slip['emp_name'] . "*,\nBerikut rincian gaji Anda untuk periode *" . $period_label . "*.\n\n";
-$wa_text .= "*— PENDAPATAN —*\n";
+$wa_text = "Halo *" . $slip['emp_name'] . "*,\n\n";
+$wa_text .= "Berikut rincian gaji Anda untuk periode *" . $period_label . "*:\n";
+$wa_text .= "-----------------------------------\n";
+$wa_text .= "*[ PENDAPATAN ]*\n";
 $wa_text .= "Gaji Pokok: " . rupiah($slip['basic_salary']) . "\n";
 $wa_text .= "Uang Harian (" . $slip['qty_days_present'] . " hr): " . rupiah($slip['daily_allowance_total']) . "\n";
-$wa_text .= "Lembur (" . $slip['qty_overtime_hours'] . " jm): " . rupiah($slip['overtime_total']) . "\n";
-$wa_text .= "\n*— POTONGAN —*\n";
-if ($slip['late_penalty_total'] > 0) $wa_text .= "Terlambat: -" . rupiah($slip['late_penalty_total']) . "\n";
-if ($slip['absence_penalty_total'] > 0) $wa_text .= "Tidak Hadir: -" . rupiah($slip['absence_penalty_total']) . "\n";
-if ($slip['bpjs_tk_deduction'] > 0) $wa_text .= "BPJSTK: -" . rupiah($slip['bpjs_tk_deduction']) . "\n";
-if ($slip['bpjs_deduction'] > 0) $wa_text .= "BPJS Kes: -" . rupiah($slip['bpjs_deduction']) . "\n";
-$wa_text .= "\n*TOTAL GAJI KOTOR: " . rupiah($slip['gross_salary']) . "*\n";
-$wa_text .= "\n*— POTONGAN KASBON —*\n";
-if ($slip['deduction_kasbon'] > 0) $wa_text .= "Cash bon: -" . rupiah($slip['deduction_kasbon']) . "\n";
-if ($slip['deduction_tabungan'] > 0) $wa_text .= "Tabungan: -" . rupiah($slip['deduction_tabungan']) . "\n";
-if ($slip['deduction_lain'] > 0) $wa_text .= "Lain-lain: -" . rupiah($slip['deduction_lain']) . "\n";
-$wa_text .= "Total Potongan: -" . rupiah($slip['total_deductions']) . "\n";
-$wa_text .= "\n✅ *TOTAL GAJI BERSIH: " . rupiah($slip['net_salary']) . "*\n";
-$wa_text .= "\nSisa Cuti: " . $slip['remaining_leave_after'] . " hari\n";
-$wa_text .= "Sisa Pinjaman: " . rupiah($slip['remaining_loan_after']) . "\n";
-$wa_text .= "\nTerima kasih atas kerja kerasnya! 🙏";
+$wa_text .= "Lembur (" . $slip['qty_overtime_hours'] . " jm): " . rupiah($slip['overtime_total']) . "\n\n";
+$wa_text .= "*[ POTONGAN ]*\n";
+$has_potongan = false;
+if ($slip['late_penalty_total'] > 0) { $wa_text .= "Terlambat: -" . rupiah($slip['late_penalty_total']) . "\n"; $has_potongan = true; }
+if ($slip['absence_penalty_total'] > 0) { $wa_text .= "Tidak Hadir: -" . rupiah($slip['absence_penalty_total']) . "\n"; $has_potongan = true; }
+if ($slip['bpjs_tk_deduction'] > 0) { $wa_text .= "BPJSTK: -" . rupiah($slip['bpjs_tk_deduction']) . "\n"; $has_potongan = true; }
+if ($slip['bpjs_deduction'] > 0) { $wa_text .= "BPJS Kes: -" . rupiah($slip['bpjs_deduction']) . "\n"; $has_potongan = true; }
+if ($slip['deduction_kasbon'] > 0) { $wa_text .= "Cash Bon: -" . rupiah($slip['deduction_kasbon']) . "\n"; $has_potongan = true; }
+if ($slip['deduction_tabungan'] > 0) { $wa_text .= "Tabungan: -" . rupiah($slip['deduction_tabungan']) . "\n"; $has_potongan = true; }
+if ($slip['deduction_lain'] > 0) { $wa_text .= "Lain-lain: -" . rupiah($slip['deduction_lain']) . "\n"; $has_potongan = true; }
+if (!$has_potongan) { $wa_text .= "- Tidak ada potongan -\n"; }
+else { $wa_text .= "Total Potongan: -" . rupiah($slip['total_deductions']) . "\n"; }
+$wa_text .= "-----------------------------------\n";
+$wa_text .= "*GAJI KOTOR:* " . rupiah($slip['gross_salary']) . "\n";
+$wa_text .= "*GAJI BERSIH: " . rupiah($slip['net_salary']) . "*\n";
+$wa_text .= "-----------------------------------\n\n";
+$wa_text .= "*Info Sisa:*\n";
+$wa_text .= "Sisa Cuti: " . $slip['remaining_leave_after'] . " hari\n";
+$wa_text .= "Sisa Pinjaman: " . rupiah($slip['remaining_loan_after']) . "\n\n";
+$wa_text .= "Terima kasih.";
 $wa_url = "https://wa.me/?text=" . urlencode($wa_text);
 ?>
 <!DOCTYPE html>
