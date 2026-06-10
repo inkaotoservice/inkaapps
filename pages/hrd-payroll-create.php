@@ -399,7 +399,7 @@ include '../includes/sidebar.php';
                     <div class="text-center md:text-left border-t md:border-t-0 md:border-l border-slate-700 pt-6 md:pt-0 md:pl-12">
                         <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">TOTAL GAJI BERSIH</p>
                         <div class="relative">
-                            <input type="text" name="net_salary" id="net_salary" value="0" readonly class="w-full bg-transparent border-none text-3xl lg:text-5xl font-black text-emerald-400 p-0 m-0 outline-none md:text-left text-center">
+                            <input type="text" name="net_salary" id="net_salary" value="0" readonly class="w-full bg-transparent border-none text-2xl lg:text-4xl font-black text-emerald-400 p-0 m-0 outline-none md:text-left text-center">
                         </div>
                     </div>
                 </div>
