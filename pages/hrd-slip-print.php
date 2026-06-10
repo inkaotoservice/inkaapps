@@ -93,7 +93,19 @@ $wa_url = "https://wa.me/?text=" . urlencode($wa_text);
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            @page { size: A4; margin: 15mm; }
+            @page { size: A4; margin: 10mm; }
+            
+            /* Compress layout specifically for print to ensure it fits 1 page */
+            .slip-header, .slip-content { padding: 16px 24px !important; }
+            .slip-section { margin-bottom: 12px !important; }
+            .section-title { padding-bottom: 8px !important; margin-bottom: 8px !important; }
+            .item-row { padding: 6px 0 !important; }
+            .subtotal-row { padding: 10px 16px !important; margin-top: 6px !important; }
+            .grand-total { margin-top: 16px !important; padding: 12px 24px !important; }
+            .slip-footer { margin-top: 16px !important; padding-top: 16px !important; }
+            div[style*="height: 32px;"] { height: 16px !important; }
+            .signature-title { margin-bottom: 40px !important; }
+            .print-date { padding: 12px !important; }
         }
 
         /* Action Bar */
