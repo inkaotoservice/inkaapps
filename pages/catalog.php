@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($cost_price > 0) {
             $margin = (($price - $cost_price) / $cost_price) * 100;
-            if ($margin > 40) {
-                echo json_encode(['success' => false, 'error' => 'Margin laba maksimal 40%. Silakan sesuaikan Harga Jual.']);
+            if ($margin > 60) {
+                echo json_encode(['success' => false, 'error' => 'Margin laba maksimal 60%. Silakan sesuaikan Harga Jual.']);
                 exit;
             }
         }
@@ -127,8 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($cost_price > 0) {
                     $margin = (($new_price - $cost_price) / $cost_price) * 100;
-                    if ($margin > 40) {
-                        throw new Exception("Update massal dibatalkan karena ada item yang margin labanya menjadi di atas 40%.");
+                    if ($margin > 60) {
+                        throw new Exception("Update massal dibatalkan karena ada item yang margin labanya menjadi di atas 60%.");
                     }
                 }
                 
@@ -370,12 +370,12 @@ if (in_array($role, ['owner', 'manager_ops', 'spv'])) {
                         </div>
 
                         <div class="space-y-3">
-                            <label class="text-xs font-bold uppercase tracking-widest text-emerald-500">Margin Laba (%) <span class="text-slate-400 normal-case tracking-normal">maks. 40%</span></label>
+                            <label class="text-xs font-bold uppercase tracking-widest text-emerald-500">Margin Laba (%) <span class="text-slate-400 normal-case tracking-normal">maks. 60%</span></label>
                             <div class="relative">
                                 <i data-lucide="percent" class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 w-5 h-5"></i>
-                                <input type="number" id="itemMargin" max="40" oninput="enforceMaxMargin()" onblur="enforceMaxMarginBlur()" class="w-full pl-12 pr-4 py-4 bg-emerald-50 border border-emerald-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:outline-none focus:bg-white transition-all font-bold text-emerald-700" placeholder="40">
+                                <input type="number" id="itemMargin" max="60" oninput="enforceMaxMargin()" onblur="enforceMaxMarginBlur()" class="w-full pl-12 pr-4 py-4 bg-emerald-50 border border-emerald-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:outline-none focus:bg-white transition-all font-bold text-emerald-700" placeholder="60">
                             </div>
-                            <p id="marginWarning" class="text-xs font-bold text-red-500 hidden"><i data-lucide="alert-triangle" class="w-3 h-3 inline-block mr-1"></i>Margin laba maksimal 40%!</p>
+                            <p id="marginWarning" class="text-xs font-bold text-red-500 hidden"><i data-lucide="alert-triangle" class="w-3 h-3 inline-block mr-1"></i>Margin laba maksimal 60%!</p>
                         </div>
 
                         <div class="space-y-3">
@@ -741,7 +741,7 @@ function enforceMaxMargin() {
     const warning = document.getElementById('marginWarning');
     const margin = parseInt(marginInput.value);
     
-    if (marginInput.value !== '' && margin > 40) {
+    if (marginInput.value !== '' && margin > 60) {
         marginInput.classList.add('border-red-400', 'bg-red-50', 'text-red-600');
         marginInput.classList.remove('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
         warning.classList.remove('hidden');
@@ -756,8 +756,8 @@ function enforceMaxMargin() {
 function enforceMaxMarginBlur() {
     const marginInput = document.getElementById('itemMargin');
     const margin = parseInt(marginInput.value);
-    if (marginInput.value === '' || margin > 40) {
-        marginInput.value = 40;
+    if (marginInput.value === '' || margin > 60) {
+        marginInput.value = 60;
         marginInput.classList.remove('border-red-400', 'bg-red-50', 'text-red-600');
         marginInput.classList.add('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
         document.getElementById('marginWarning').classList.add('hidden');
@@ -781,7 +781,7 @@ function updateMarginFromPrice() {
     if(cost > 0 && price > 0) {
         const m = Math.round(((price - cost) / cost) * 100);
         marginInput.value = m;
-        if (m > 40) {
+        if (m > 60) {
             marginInput.classList.add('border-red-400', 'bg-red-50', 'text-red-600');
             marginInput.classList.remove('border-emerald-100', 'bg-emerald-50', 'text-emerald-700');
             warning.classList.remove('hidden');
@@ -836,8 +836,8 @@ function saveItem(e) {
     const priceVal = parseRp(document.getElementById('itemPrice').value);
     if (costVal > 0) {
         const m = Math.round(((priceVal - costVal) / costVal) * 100);
-        if (m > 40) {
-            showToast('error', 'Gagal', 'Margin laba maksimal 40%. Silakan sesuaikan Harga Jual.');
+        if (m > 60) {
+            showToast('error', 'Gagal', 'Margin laba maksimal 60%. Silakan sesuaikan Harga Jual.');
             return;
         }
     }
