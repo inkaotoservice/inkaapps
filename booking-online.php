@@ -217,7 +217,6 @@ $branches = $stmt_br->fetchAll();
                             <select name="service_time" required
                                 class="w-full px-4 py-3 sm:py-3.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-bold text-sm text-slate-800 cursor-pointer">
                                 <option value="">-- Pilih Jam --</option>
-                                <option value="08:00">08:00 WIB</option>
                                 <option value="09:00">09:00 WIB</option>
                                 <option value="10:00">10:00 WIB</option>
                                 <option value="11:00">11:00 WIB</option>
