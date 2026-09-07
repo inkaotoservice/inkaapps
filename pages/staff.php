@@ -40,6 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = "pekerja_" . uniqid() . "@inka.internal";
             $password_raw = bin2hex(random_bytes(8));
         } else {
+            // Hanya Owner yang boleh membuat akun login dengan role tertentu
+            if (!is_owner()) {
+                set_flash_msg("Hanya Owner yang boleh membuat akun login baru.", "error");
+                header("Location: $redirect_url"); exit();
+            }
             $role = $_POST['role'];
             $email = trim($_POST['email']);
             $password_raw = $_POST['password'];
@@ -80,12 +85,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id        = $_POST['id'];
         $full_name = trim($_POST['full_name']);
         $jobdesk   = trim($_POST['jobdesk'] ?? '');
-        $role      = $_POST['role'];
         $branch_id = !empty($_POST['branch_id']) ? $_POST['branch_id'] : null;
         
         try {
-            $stmt = $pdo->prepare("UPDATE profiles SET full_name=?, jobdesk=?, role=?, branch_id=? WHERE id=?");
-            $stmt->execute([$full_name, $jobdesk, $role, $branch_id, $id]);
+            // Hanya Owner yang boleh mengubah role
+            if (is_owner()) {
+                $role = $_POST['role'];
+                $stmt = $pdo->prepare("UPDATE profiles SET full_name=?, jobdesk=?, role=?, branch_id=? WHERE id=?");
+                $stmt->execute([$full_name, $jobdesk, $role, $branch_id, $id]);
+            } else {
+                // Non-owner: update semua KECUALI role
+                $stmt = $pdo->prepare("UPDATE profiles SET full_name=?, jobdesk=?, branch_id=? WHERE id=?");
+                $stmt->execute([$full_name, $jobdesk, $branch_id, $id]);
+            }
             set_flash_msg("Data pekerja berhasil diperbarui!");
             header("Location: $redirect_url"); exit();
         } catch (Exception $e) {
@@ -208,9 +220,11 @@ function format_role($role) {
                 </select>
                 <?php endif; ?>
             </form>
+            <?php if (is_owner()): ?>
             <button onclick="openModal('modalAddLogin')" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20 active:scale-95">
                 <i data-lucide="key" class="w-4 h-4"></i> Tambah Akun Login
             </button>
+            <?php endif; ?>
             <button onclick="openModal('modalAdd')" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95">
                 <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Pekerja
             </button>
@@ -502,6 +516,7 @@ function format_role($role) {
                     <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                         <div id="editRoleField">
                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Akses Role</label>
+                            <?php if (is_owner()): ?>
                             <select name="role" id="editRole" required class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:border-amber-500 outline-none text-sm font-bold text-slate-700">
                                 <option value="admin">Admin Pusat</option>
                                 <option value="admin_depok">Admin Depok</option>
@@ -511,6 +526,10 @@ function format_role($role) {
                                 <option value="owner">Owner</option>
                                 <option value="mekanik">Mekanik (Tanpa Akses Login)</option>
                             </select>
+                            <?php else: ?>
+                            <input type="text" id="editRoleDisplay" readonly class="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-sm font-bold text-slate-400 cursor-not-allowed">
+                            <p class="text-[9px] text-amber-600 font-bold mt-1"><i data-lucide="lock" class="w-3 h-3 inline"></i> Hanya Owner yang bisa ubah role</p>
+                            <?php endif; ?>
                         </div>
                         <div>
                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Penempatan Cabang</label>
@@ -582,7 +601,22 @@ $extra_js = <<<JS
         document.getElementById('editFullName').value = staff.full_name;
         document.getElementById('editJobdesk').value = staff.jobdesk || '';
         document.getElementById('editEmail').value = staff.email;
-        document.getElementById('editRole').value = staff.role;
+        
+        // Role field: select untuk Owner, readonly input untuk non-Owner
+        const roleSelect = document.getElementById('editRole');
+        const roleDisplay = document.getElementById('editRoleDisplay');
+        if (roleSelect) {
+            roleSelect.value = staff.role;
+        }
+        if (roleDisplay) {
+            const roleLabels = {
+                'owner': 'Owner', 'manager_ops': 'Manager Ops', 'spv': 'Supervisor',
+                'admin': 'Admin Pusat', 'admin_depok': 'Admin Depok', 'admin_bsd': 'Admin BSD',
+                'mekanik': 'Mekanik'
+            };
+            roleDisplay.value = roleLabels[staff.role] || staff.role;
+        }
+        
         document.getElementById('editBranch').value = staff.branch_id || '';
         
         // Sembunyikan Email & Role jika ini adalah pekerja lapangan (@inka.internal)
