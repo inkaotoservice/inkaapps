@@ -26,7 +26,8 @@ $current_path   = $_SERVER['SCRIPT_NAME'];
 
     <!-- Logo Header -->
     <div class="h-20 px-6 flex items-center border-b border-slate-100 shrink-0">
-        <a href="<?php echo BASE_URL; ?>index.php" class="flex items-center gap-3 group">
+<?php $home_url = is_admin() ? BASE_URL . 'pages/pos.php' : BASE_URL . 'index.php'; ?>
+        <a href="<?php echo $home_url; ?>" class="flex items-center gap-3 group">
             <div class="w-9 h-9 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-300">
                 <i data-lucide="wrench" class="w-5 h-5"></i>
             </div>

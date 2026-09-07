@@ -3,8 +3,8 @@ require_once 'includes/config.php';
 require_once 'includes/functions.php';
 auth_ready();
 
-// Admin langsung ke POS (Opsional: dinonaktifkan agar bisa lihat Dashboard)
-// if (is_admin()) { redirect_by_role(); }
+// Admin langsung ke POS — jangan izinkan akses Dashboard Overview
+if (is_admin()) { redirect_by_role(); }
 
 $page_title = 'Dashboard Overview';
 $role       = get_role();
